@@ -10,7 +10,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Certes" Version="3.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Services\" />
     </ItemGroup>
 
 </Project>
