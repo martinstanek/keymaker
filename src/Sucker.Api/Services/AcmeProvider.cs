@@ -106,14 +106,15 @@ public sealed class AcmeProvider : IAcmeProvider
     private async Task PersistPemsAsync(string fullChain, string key)
     {
         var folder = DateTime.Now.ToString("yyyyMMddHHddss");
+        var path = Path.Combine("data", folder);
 
         _logger.LogInformation($"Persisting certificates: {folder}");
 
         try
         {
-            Directory.CreateDirectory(folder);
-            await File.WriteAllTextAsync(Path.Combine(folder, "fullchain.pem"), fullChain);
-            await File.WriteAllTextAsync(Path.Combine(folder, "privkey.pem"), key);
+            Directory.CreateDirectory(path);
+            await File.WriteAllTextAsync(Path.Combine(path, "fullchain.pem"), fullChain);
+            await File.WriteAllTextAsync(Path.Combine(path, "privkey.pem"), key);
         }
         catch (Exception e)
         {
