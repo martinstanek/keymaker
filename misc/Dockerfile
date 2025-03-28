@@ -5,4 +5,4 @@ ENV ASPNETCORE_URLS=http://*:80
 WORKDIR /app
 COPY . .
 
-ENTRYPOINT ["dotnet", "Socker.Api.dll"]
+ENTRYPOINT ["dotnet", "Sucker.Api.dll"]
