@@ -85,8 +85,11 @@ public sealed class AcmeProvider : IAcmeProvider
         var cert = await order.Generate(certInfo, privateKey);
         var pfxBuilder = cert.ToPfx(privateKey);
         var pfx = pfxBuilder.Build(certificateParameters.CertificateName, certificateParameters.Password);
+        var base64 = Convert.ToBase64String(pfx);
 
-        return Convert.ToBase64String(pfx);
+        _logger.LogInformation(base64);
+
+        return base64;
     }
 
     private void PrepareForChallenge(IChallengeContext challengeContext)
