@@ -1,9 +1,8 @@
 ﻿using Certes;
 
-namespace Awitec.Framework.Acme.Factories
+namespace Sucker.Api.Services.Factories;
+
+public interface IAcmeContextFactory
 {
-    public interface IAcmeContextFactory
-    {
-        IAcmeContext GetAcmeContext();
-    }
+    IAcmeContext GetAcmeContext();
 }

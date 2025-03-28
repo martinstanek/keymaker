@@ -1,50 +1,50 @@
 ﻿using System;
-using Awitec.Framework.Acme.Callback;
-using Awitec.Framework.Acme.Factories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Sucker.Api.Services.Callback;
+using Sucker.Api.Services.Factories;
 
-namespace Awitec.Framework.Acme.Extensions
+namespace Sucker.Api.Services.Extensions;
+
+public static class AcmeExtensions
 {
-    public static class AcmeExtensions
+    private const string WellKnownAcmeChallengeUrl = "/.well-known/acme-challenge";
+    private const string ResponseContentType = "plain/text";
+
+    public static IApplicationBuilder UseAcmeHandler(this IApplicationBuilder app)
     {
-        private const string WellKnownAcmeChallengeUrl = "/.well-known/acme-challenge";
-        private const string ResponseContentType = "plain/text";
+        var callBack = app.ApplicationServices.GetRequiredService<IAcmeCallback>();
 
-        public static IApplicationBuilder UseAcmeHandler(this IApplicationBuilder app)
+        if (callBack == null)
         {
-            var callBack = app.ApplicationServices?.GetService<IAcmeCallback>();
+            throw new InvalidOperationException();
+        }
 
-            if (callBack == null)
+        app.Map(WellKnownAcmeChallengeUrl, sub =>
+            sub.Run(async context =>
             {
-                throw new InvalidOperationException();
-            }
+                var path = context.Request.Path.ToUriComponent();
 
-            app.Map(WellKnownAcmeChallengeUrl, sub =>
-                sub.Run(async context =>
+                if (!string.IsNullOrWhiteSpace(path) && path.Length > 1 && path.StartsWith("/", StringComparison.Ordinal))
                 {
-                    var path = context.Request.Path.ToUriComponent();
+                    callBack.Hit = DateTime.Now;
+                    context.Response.ContentType = ResponseContentType;
 
-                    if (!string.IsNullOrWhiteSpace(path) && path.Length > 1 && path.StartsWith("/", StringComparison.Ordinal))
-                    {
-                        callBack.Hit = DateTime.Now;
-                        context.Response.ContentType = ResponseContentType;
-                        await context.Response.WriteAsync($"{path.Substring(1)}.{callBack.Thumbprint}").ConfigureAwait(false);
-                    }
-                }));
+                    await context.Response.WriteAsync($"{path.Substring(1)}.{callBack.Thumbprint}");
+                }
+            }));
 
-            return app;
-        }
+        return app;
+    }
 
-        public static IServiceCollection AddAcme(this IServiceCollection services)
-        {
-            services
-                .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
-                .AddSingleton<IAcmeCallback, AcmeCallback>()
-                .AddTransient<IAcmeProvider, AcmeProvider>();
+    public static IServiceCollection AddAcme(this IServiceCollection services)
+    {
+        services
+            .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
+            .AddSingleton<IAcmeCallback, AcmeCallback>()
+            .AddTransient<IAcmeProvider, AcmeProvider>();
 
-            return services;
-        }
+        return services;
     }
 }

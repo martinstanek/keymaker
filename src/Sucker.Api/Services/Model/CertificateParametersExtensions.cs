@@ -1,20 +1,19 @@
 ﻿using Certes;
 
-namespace Awitec.Framework.Acme.Model
+namespace Sucker.Api.Services.Model;
+
+internal static class CertificateParametersExtensions
 {
-    internal static class CertificateParametersExtensions
+    internal static CsrInfo AsCsrInfo(this CertificateParameters certificateParameters)
     {
-        internal static CsrInfo AsCsrInfo(this CertificateParameters certificateParameters)
+        return new CsrInfo
         {
-            return new CsrInfo
-            {
-                CountryName = certificateParameters.CountryName,
-                State = certificateParameters.State,
-                Locality = certificateParameters.Locality,
-                Organization = certificateParameters.Organization,
-                OrganizationUnit = certificateParameters.OrganizationUnit,
-                CommonName = certificateParameters.Domain
-            };
-        }
+            CountryName = certificateParameters.CountryName,
+            State = certificateParameters.State,
+            Locality = certificateParameters.Locality,
+            Organization = certificateParameters.Organization,
+            OrganizationUnit = certificateParameters.OrganizationUnit,
+            CommonName = certificateParameters.Domain
+        };
     }
 }

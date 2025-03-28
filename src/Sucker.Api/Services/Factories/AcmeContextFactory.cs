@@ -1,24 +1,25 @@
 ﻿using Certes;
 using Certes.Acme;
 
-namespace Awitec.Framework.Acme.Factories
+namespace Sucker.Api.Services.Factories;
+
+public class AcmeContextFactory : IAcmeContextFactory
 {
-    public class AcmeContextFactory : IAcmeContextFactory
+    private readonly bool _isProduction;
+
+    public AcmeContextFactory() : this(isProduction: true) { }
+
+    public AcmeContextFactory(bool isProduction)
     {
-        private readonly bool _isProduction;
+        _isProduction = isProduction;
+    }
 
-        public AcmeContextFactory() : this(isProduction: true) { }
+    public IAcmeContext GetAcmeContext()
+    {
+        var knownServer = _isProduction
+            ? WellKnownServers.LetsEncryptV2
+            : WellKnownServers.LetsEncryptStagingV2;
 
-        public AcmeContextFactory(bool isProduction)
-        {
-            _isProduction = isProduction;
-        }
-
-        public IAcmeContext GetAcmeContext()
-        {
-            var knownServer = _isProduction ? WellKnownServers.LetsEncryptV2 : WellKnownServers.LetsEncryptStagingV2;
-
-            return new AcmeContext(knownServer);
-        }
+        return new AcmeContext(knownServer);
     }
 }

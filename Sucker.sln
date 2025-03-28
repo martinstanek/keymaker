@@ -4,6 +4,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AF49584E-3D5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sucker.Api", "src\Sucker.Api\Sucker.Api.csproj", "{DF84F7C9-9E33-4051-A35D-EF83DC70537E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5303111D-B7C1-42F1-BE9D-CC25F08646AB}"
+	ProjectSection(SolutionItems) = preProject
+		misc\Dockerfile = misc\Dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

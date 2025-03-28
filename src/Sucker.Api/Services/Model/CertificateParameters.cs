@@ -1,23 +1,35 @@
-﻿namespace Awitec.Framework.Acme.Model
+﻿namespace Sucker.Api.Services.Model;
+
+public sealed record CertificateParameters
 {
-    public class CertificateParameters
+    public required string Contact { get; init; } = string.Empty;
+
+    public required string Domain { get; init; } = string.Empty;
+
+    public required string CertificateName { get; init; } = string.Empty;
+
+    public required string Password { get; init; } = string.Empty;
+
+    public required string CountryName { get; init; } = string.Empty;
+
+    public required string State { get; init; } = string.Empty;
+
+    public required string Locality { get; init; } = string.Empty;
+
+    public required string Organization { get; init; } = string.Empty;
+
+    public required string OrganizationUnit { get; init; } = string.Empty;
+
+    public static CertificateParameters Empty => new()
     {
-        public string Contact { get; set; } = string.Empty;
-
-        public string Domain { get; set; } = string.Empty;
-
-        public string CertificateName { get; set; } = string.Empty;
-
-        public string Password { get; set; } = string.Empty;
-
-        public string CountryName { get; set; } = string.Empty;
-
-        public string State { get; set; } = string.Empty;
-
-        public string Locality { get; set; } = string.Empty;
-
-        public string Organization { get; set; } = string.Empty;
-
-        public string OrganizationUnit { get; set; } = string.Empty;
-    }
+        Contact = string.Empty,
+        Domain = string.Empty,
+        CertificateName = string.Empty,
+        Password = string.Empty,
+        CountryName = string.Empty,
+        State = string.Empty,
+        Locality = string.Empty,
+        Organization = string.Empty,
+        OrganizationUnit = string.Empty
+    };
 }

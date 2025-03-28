@@ -2,118 +2,105 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Certes;
 using Certes.Acme;
-using Awitec.Framework.Acme.Callback;
-using Awitec.Framework.Acme.Factories;
-using Awitec.Framework.Acme.Model;
+using Sucker.Api.Services.Callback;
+using Sucker.Api.Services.Factories;
+using Sucker.Api.Services.Model;
 
-namespace Awitec.Framework.Acme
+namespace Sucker.Api.Services;
+
+public sealed class AcmeProvider : IAcmeProvider
 {
-    public sealed class AcmeProvider : IAcmeProvider, IDisposable
+    private const int OneSecond = 1000;
+
+    private readonly IAcmeContextFactory _acmeContextFactory;
+    private readonly IAcmeCallback _acmeCallback;
+
+    public AcmeProvider(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback)
     {
-        private const int OneSecond = 1000;
+        _acmeContextFactory = acmeContextFactory;
+        _acmeCallback = acmeCallback;
+    }
 
-        private readonly IAcmeContextFactory _acmeContextFactory;
-        private readonly IAcmeCallback _acmeCallback;
-        private bool _isDisposed;
-
-        public AcmeProvider(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback, ILoggerFactory loggerFactory)
+    public async Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken)
+    {
+        if (waitForResponseSeconds == 0)
         {
-            _acmeContextFactory = acmeContextFactory;
-            _acmeCallback = acmeCallback;
+            throw new ArgumentOutOfRangeException(nameof(waitForResponseSeconds));
         }
 
-        public async Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken)
+        if (cancellationToken.IsCancellationRequested)
         {
-            if (waitForResponseSeconds == 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(waitForResponseSeconds));
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return string.Empty;
-            }
-
-            var order = await PlaceOrderAsync(certificateParameters).ConfigureAwait(false);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return string.Empty;
-            }
-
-            await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken).ConfigureAwait(false);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return string.Empty;
-            }
-
-            return await GetCertificateBase64StringAsync(order, certificateParameters).ConfigureAwait(false);
+            return string.Empty;
         }
 
-        private async Task<IOrderContext> PlaceOrderAsync(CertificateParameters certificateParameters)
+        var order = await PlaceOrderAsync(certificateParameters);
+
+        if (cancellationToken.IsCancellationRequested)
         {
-            var acme = _acmeContextFactory.GetAcmeContext();
-
-            await acme.NewAccount(certificateParameters.Contact, true).ConfigureAwait(false);
-
-            return await acme.NewOrder(new[] { certificateParameters.Domain }).ConfigureAwait(false);
+            return string.Empty;
         }
 
-        private async Task TriggerChallengeAsync(IOrderContext order, uint waitForResponseSeconds, CancellationToken cancellationToken)
+        await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken);
+
+        if (cancellationToken.IsCancellationRequested)
         {
-            var authorize = (await order.Authorizations().ConfigureAwait(false)).First();
-            var httpChallenge = await authorize.Http().ConfigureAwait(false);
-
-            PrepareForChallenge(httpChallenge);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            await httpChallenge.Validate().ConfigureAwait(false);
-
-            var i = 0;
-
-            while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < waitForResponseSeconds)
-            {
-                await Task.Delay(OneSecond, cancellationToken).ConfigureAwait(false);
-            }
+            return string.Empty;
         }
 
-        private async Task<string> GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
-        {
-            var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
-            var certInfo = certificateParameters.AsCsrInfo();
-            var cert = await order.Generate(certInfo, privateKey).ConfigureAwait(false);
-            var pfxBuilder = cert.ToPfx(privateKey);
-            var pfx = pfxBuilder.Build(certificateParameters.CertificateName, certificateParameters.Password);
+        return await GetCertificateBase64StringAsync(order, certificateParameters);
+    }
 
-            return Convert.ToBase64String(pfx);
+    private async Task<IOrderContext> PlaceOrderAsync(CertificateParameters certificateParameters)
+    {
+        var acme = _acmeContextFactory.GetAcmeContext();
+
+        await acme.NewAccount(certificateParameters.Contact, true);
+
+        return await acme.NewOrder([certificateParameters.Domain]);
+    }
+
+    private async Task TriggerChallengeAsync(IOrderContext order, uint waitForResponseSeconds, CancellationToken cancellationToken)
+    {
+        var authorize = (await order.Authorizations()).First();
+        var httpChallenge = await authorize.Http();
+
+        PrepareForChallenge(httpChallenge);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
         }
 
-        private void PrepareForChallenge(IChallengeContext challengeContext)
+        await httpChallenge.Validate();
+
+        var i = 0;
+
+        while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < waitForResponseSeconds)
         {
-            var keyAuthorize = challengeContext.KeyAuthz;
-            var str = keyAuthorize.Split('.');
-
-            _acmeCallback.Token = str[0];
-            _acmeCallback.Thumbprint = str[1];
-            _acmeCallback.Location = challengeContext.Location.ToString();
+            await Task.Delay(OneSecond, cancellationToken);
         }
+    }
 
-        public void Dispose()
-        {
-            if (_isDisposed)
-            {
-                return;
-            }
+    private async Task<string> GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
+    {
+        var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
+        var certInfo = certificateParameters.AsCsrInfo();
+        var cert = await order.Generate(certInfo, privateKey);
+        var pfxBuilder = cert.ToPfx(privateKey);
+        var pfx = pfxBuilder.Build(certificateParameters.CertificateName, certificateParameters.Password);
 
-            _isDisposed = true;
-        }
+        return Convert.ToBase64String(pfx);
+    }
+
+    private void PrepareForChallenge(IChallengeContext challengeContext)
+    {
+        var keyAuthorize = challengeContext.KeyAuthz;
+        var str = keyAuthorize.Split('.');
+
+        _acmeCallback.Token = str[0];
+        _acmeCallback.Thumbprint = str[1];
+        _acmeCallback.Location = challengeContext.Location.ToString();
     }
 }
