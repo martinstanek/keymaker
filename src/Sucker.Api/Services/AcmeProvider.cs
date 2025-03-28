@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,11 +86,31 @@ public sealed class AcmeProvider : IAcmeProvider
         var cert = await order.Generate(certInfo, privateKey);
         var pfxBuilder = cert.ToPfx(privateKey);
         var pfx = pfxBuilder.Build(certificateParameters.CertificateName, certificateParameters.Password);
+        var pem = cert.ToPem(privateKey);
+        var pemKey = privateKey.ToPem();
         var base64 = Convert.ToBase64String(pfx);
 
-        _logger.LogInformation(base64);
+        await PersistPemsAsync(pem, pemKey);
 
         return base64;
+    }
+
+    private async Task PersistPemsAsync(string fullChain, string key)
+    {
+        var folder = DateTime.Now.ToString("yyyyMMddHHddss");
+
+        _logger.LogInformation($"Persisting certificates: {folder}");
+
+        try
+        {
+            Directory.CreateDirectory(folder);
+            await File.WriteAllTextAsync(Path.Combine(folder, "fullchain.pem"), fullChain);
+            await File.WriteAllTextAsync(Path.Combine(folder, "privkey.pem"), key);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+        }
     }
 
     private void PrepareForChallenge(IChallengeContext challengeContext)
