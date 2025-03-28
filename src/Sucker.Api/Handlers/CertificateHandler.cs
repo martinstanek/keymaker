@@ -20,7 +20,9 @@ public sealed class CertificateHandler
 
     public Task<string> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
     {
-        var useParameters = parameters ?? _parameters;
+        var useParameters = string.IsNullOrWhiteSpace(parameters?.Contact)
+            ? _parameters
+            : parameters;
 
         return _acmeProvider.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
     }
