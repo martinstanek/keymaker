@@ -22,6 +22,6 @@ public sealed class CertificateHandler
     {
         var useParameters = parameters ?? _parameters;
 
-        return Task.FromResult("test"); // _acmeProvider.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
+        return _acmeProvider.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
     }
 }
