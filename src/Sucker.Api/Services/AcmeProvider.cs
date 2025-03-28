@@ -106,7 +106,7 @@ public sealed class AcmeProvider : IAcmeProvider
     private async Task PersistPemsAsync(string fullChain, string key)
     {
         var folder = DateTime.Now.ToString("yyyyMMddHHddss");
-        var path = Path.Combine("data", folder);
+        var path = Path.Combine("./data", folder);
 
         _logger.LogInformation($"Persisting certificates: {folder}");
 
