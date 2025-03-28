@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Certes;
-using Certes.Acme;
+using Microsoft.Extensions.Logging;
 using Sucker.Api.Services.Callback;
 using Sucker.Api.Services.Factories;
 using Sucker.Api.Services.Model;
+using Certes;
+using Certes.Acme;
 
 namespace Sucker.Api.Services;
 
@@ -16,38 +17,26 @@ public sealed class AcmeProvider : IAcmeProvider
 
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
+    private readonly ILogger<AcmeProvider> _logger;
 
-    public AcmeProvider(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback)
+    public AcmeProvider(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback, ILogger<AcmeProvider> logger)
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;
+        _logger = logger;
     }
 
     public async Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken)
     {
-        if (waitForResponseSeconds == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(waitForResponseSeconds));
-        }
+        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
 
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return string.Empty;
-        }
+        ArgumentOutOfRangeException.ThrowIfZero(waitForResponseSeconds);
 
         var order = await PlaceOrderAsync(certificateParameters);
 
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return string.Empty;
-        }
+        _logger.LogInformation($"Order negotiated {order.Location}");
 
         await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken);
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return string.Empty;
-        }
 
         return await GetCertificateBase64StringAsync(order, certificateParameters);
     }
@@ -56,7 +45,7 @@ public sealed class AcmeProvider : IAcmeProvider
     {
         var acme = _acmeContextFactory.GetAcmeContext();
 
-        await acme.NewAccount(certificateParameters.Contact, true);
+        await acme.NewAccount(certificateParameters.Contact, termsOfServiceAgreed: true);
 
         return await acme.NewOrder([certificateParameters.Domain]);
     }
@@ -73,6 +62,8 @@ public sealed class AcmeProvider : IAcmeProvider
             return;
         }
 
+        _logger.LogInformation($"Validating the challenge {httpChallenge.Type}");
+
         await httpChallenge.Validate();
 
         var i = 0;
@@ -80,11 +71,15 @@ public sealed class AcmeProvider : IAcmeProvider
         while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < waitForResponseSeconds)
         {
             await Task.Delay(OneSecond, cancellationToken);
+
+            _logger.LogInformation($"Waiting ... {i}/{waitForResponseSeconds}s");
         }
     }
 
     private async Task<string> GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
     {
+        _logger.LogInformation("Generating the certificate");
+
         var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
         var certInfo = certificateParameters.AsCsrInfo();
         var cert = await order.Generate(certInfo, privateKey);
