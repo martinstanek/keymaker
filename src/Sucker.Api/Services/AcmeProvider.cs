@@ -31,6 +31,10 @@ public sealed class AcmeProvider : IAcmeProvider
     {
         _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
 
+        await PersistPemsAsync("test", "test");
+
+        /*
+
         ArgumentOutOfRangeException.ThrowIfZero(waitForResponseSeconds);
 
         var order = await PlaceOrderAsync(certificateParameters);
@@ -40,6 +44,10 @@ public sealed class AcmeProvider : IAcmeProvider
         await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken);
 
         return await GetCertificateBase64StringAsync(order, certificateParameters);
+
+        */
+
+        return "";
     }
 
     private async Task<IOrderContext> PlaceOrderAsync(CertificateParameters certificateParameters)
