@@ -8,7 +8,7 @@ namespace Keymaker.Api.Handlers;
 
 public sealed class CertificateHandler
 {
-    private const byte WaitSeconds = 60;
+    private const int WaitSeconds = 600;
 
     private readonly CertificateParameters _parameters;
     private readonly IAcmeService _acmeService;
