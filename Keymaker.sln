@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5303111D-B
 		misc\Dockerfile = misc\Dockerfile
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keymaker.Service", "src\Keymaker.Service\Keymaker.Service.csproj", "{2876A77A-38C8-4245-A2FC-E55FC9882B5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,11 +18,16 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DF84F7C9-9E33-4051-A35D-EF83DC70537E} = {AF49584E-3D5A-4E02-8F9E-C86A2BF0D118}
+		{2876A77A-38C8-4245-A2FC-E55FC9882B5E} = {AF49584E-3D5A-4E02-8F9E-C86A2BF0D118}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DF84F7C9-9E33-4051-A35D-EF83DC70537E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DF84F7C9-9E33-4051-A35D-EF83DC70537E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF84F7C9-9E33-4051-A35D-EF83DC70537E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF84F7C9-9E33-4051-A35D-EF83DC70537E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2876A77A-38C8-4245-A2FC-E55FC9882B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2876A77A-38C8-4245-A2FC-E55FC9882B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2876A77A-38C8-4245-A2FC-E55FC9882B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2876A77A-38C8-4245-A2FC-E55FC9882B5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
