@@ -74,7 +74,9 @@ public sealed class AcmeService : IAcmeService
             ? await PrepareForDnsChallengeAsync(acme, authorize, domain)
             : await PrepareForHttpChallengeAsync(authorize);
 
-        await challenge.Validate();
+        var validatedChallenge =  await challenge.Validate();
+
+        _logger.LogDebug($"Validating challenge: {validatedChallenge.Type}");
 
         var i = 0;
 
@@ -83,11 +85,6 @@ public sealed class AcmeService : IAcmeService
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
             _logger.LogDebug($"Waiting ... {i}/{waitForResponseSeconds}s");
-        }
-
-        if (isWildCard)
-        {
-            await _dnsService.RemoveTxtEntryAsync(domain);
         }
     }
 

@@ -9,7 +9,7 @@ namespace Keymaker.Service.Dns;
 
 public sealed class DnsService : IDnsService
 {
-    private const int RecordTimeToLiveSeconds = 3600;
+    private const int RecordTimeToLiveSeconds = 15 * 60;
     private const string RecordComment = "Added by the Keymaker.";
     private const string RecordPrefix = "_acme-challenge";
 
@@ -46,32 +46,6 @@ public sealed class DnsService : IDnsService
                 RecordType.TXT,
                 ttl: RecordTimeToLiveSeconds,
                 RecordComment);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, e.Message);
-
-            throw;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
-    public async Task RemoveTxtEntryAsync(string domain)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(domain);
-
-        var recordName = $"{RecordPrefix}.{domain}";
-
-        await _semaphore.WaitAsync();
-
-        _logger.LogDebug($"Removing a TXT record for the domain: {domain}");
-
-        try
-        {
-            await _client.Value.Record.Delete(recordName);
         }
         catch (Exception e)
         {
