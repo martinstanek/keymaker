@@ -45,9 +45,7 @@ public sealed class AcmeService : IAcmeService
 
         _logger.LogDebug($"Order negotiated {order.Location}");
 
-        await TriggerChallengeAsync(acme, order, isWildCard, waitForResponseSeconds, "awitec.net", cancellationToken);
-
-        await GetCertificateBase64StringAsync(order, certificateParameters);
+        await TriggerChallengeAsync(acme, order, isWildCard, waitForResponseSeconds, "awitec.net", certificateParameters, cancellationToken);
     }
 
     private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
@@ -67,6 +65,7 @@ public sealed class AcmeService : IAcmeService
         bool isWildCard,
         uint waitForResponseSeconds,
         string domain,
+        CertificateParameters certificateParameters,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
@@ -85,6 +84,18 @@ public sealed class AcmeService : IAcmeService
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
             _logger.LogDebug($"Waiting ... {i}/{waitForResponseSeconds}s");
+
+            if (i % 10 == 0)
+            {
+                try
+                {
+                    await GetCertificateBase64StringAsync(order, certificateParameters);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, e.Message);
+                }
+            }
         }
     }
 

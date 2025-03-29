@@ -19,14 +19,18 @@ public sealed class CertificateHandler
         _acmeService = acmeService;
     }
 
-    public async Task<IResult> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
+    public Task<IResult> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
     {
         var useParameters = string.IsNullOrWhiteSpace(parameters?.Contact)
             ? _parameters
             : parameters;
 
-        await _acmeService.GetCertificateAsync(useParameters, isWildCard: true, WaitSeconds, cancellationToken);
+        Task.Factory.StartNew(
+            () => _acmeService.GetCertificateAsync(useParameters, isWildCard: true, WaitSeconds, CancellationToken.None),
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
 
-        return Results.NoContent();
+        return Task.FromResult(Results.NoContent());
     }
 }
