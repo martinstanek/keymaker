@@ -7,6 +7,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5303111D-B7C1-42F1-BE9D-CC25F08646AB}"
 	ProjectSection(SolutionItems) = preProject
 		misc\Dockerfile = misc\Dockerfile
+		misc\logo.jpg = misc\logo.jpg
+		readme.md = readme.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keymaker.Service", "src\Keymaker.Service\Keymaker.Service.csproj", "{2876A77A-38C8-4245-A2FC-E55FC9882B5E}"
