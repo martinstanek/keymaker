@@ -42,7 +42,7 @@ public sealed class DnsService : IDnsService
             await _client.Value.Record.Create(
                 name: recordName,
                 content: value,
-                proxied: true,
+                proxied: false,
                 RecordType.TXT,
                 ttl: RecordTimeToLiveSeconds,
                 RecordComment);
