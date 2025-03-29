@@ -15,7 +15,7 @@ public sealed class DnsService : IDnsService
 
     private readonly ILogger<DnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _client;
-    private readonly SemaphoreSlim _semaphore = new(0, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public DnsService(DnsServiceConfiguration configuration, ILogger<DnsService> logger)
     {
@@ -35,12 +35,14 @@ public sealed class DnsService : IDnsService
 
         await _semaphore.WaitAsync();
 
+        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {domain}");
+
         try
         {
             await _client.Value.Record.Create(
                 name: recordName,
                 content: value,
-                proxied: false,
+                proxied: true,
                 RecordType.TXT,
                 ttl: RecordTimeToLiveSeconds,
                 RecordComment);
@@ -64,6 +66,8 @@ public sealed class DnsService : IDnsService
         var recordName = $"{RecordPrefix}.{domain}";
 
         await _semaphore.WaitAsync();
+
+        _logger.LogDebug($"Removing a TXT record for the domain: {domain}");
 
         try
         {
