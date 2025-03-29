@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,34 +7,39 @@ using Certes.Acme;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Store;
 using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service.Acme;
 
 public sealed class AcmeService : IAcmeService
 {
-    private const int OneSecond = 1000;
-
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
+    private readonly ICertStoreService _certStoreService;
     private readonly ILogger<AcmeService> _logger;
 
-    public AcmeService(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback, ILogger<AcmeService> logger)
+    public AcmeService(
+        IAcmeContextFactory acmeContextFactory,
+        IAcmeCallback acmeCallback,
+        ICertStoreService certStoreService,
+        ILogger<AcmeService> logger)
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;
+        _certStoreService = certStoreService;
         _logger = logger;
     }
 
     public async Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
+        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
         ArgumentOutOfRangeException.ThrowIfZero(waitForResponseSeconds);
 
         var order = await PlaceOrderAsync(certificateParameters);
 
-        _logger.LogInformation($"Order negotiated {order.Location}");
+        _logger.LogDebug($"Order negotiated {order.Location}");
 
         await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken);
 
@@ -63,7 +67,7 @@ public sealed class AcmeService : IAcmeService
             return;
         }
 
-        _logger.LogInformation($"Validating the challenge {httpChallenge.Type}");
+        _logger.LogDebug($"Validating the challenge {httpChallenge.Type}");
 
         await httpChallenge.Validate();
 
@@ -71,15 +75,15 @@ public sealed class AcmeService : IAcmeService
 
         while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < waitForResponseSeconds)
         {
-            await Task.Delay(OneSecond, cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-            _logger.LogInformation($"Waiting ... {i}/{waitForResponseSeconds}s");
+            _logger.LogDebug($"Waiting ... {i}/{waitForResponseSeconds}s");
         }
     }
 
     private async Task<string> GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
     {
-        _logger.LogInformation("Generating the certificate");
+        _logger.LogDebug("Generating the certificate");
 
         var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
         var certInfo = certificateParameters.AsCsrInfo();
@@ -90,28 +94,9 @@ public sealed class AcmeService : IAcmeService
         var pemKey = privateKey.ToPem();
         var base64 = Convert.ToBase64String(pfx);
 
-        await PersistPemsAsync(certificateParameters.Domain, pem, pemKey);
+        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, pem, pemKey);
 
         return base64;
-    }
-
-    private async Task PersistPemsAsync(string domain, string fullChain, string key)
-    {
-        var folder = DateTime.Now.ToString("yyyyMMddHHddss");
-        var path = Path.Combine("/data", domain, folder);
-
-        _logger.LogInformation($"Persisting certificates: {folder}");
-
-        try
-        {
-            Directory.CreateDirectory(path);
-            await File.WriteAllTextAsync(Path.Combine(path, "fullchain.pem"), fullChain);
-            await File.WriteAllTextAsync(Path.Combine(path, "privkey.pem"), key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, e.Message);
-        }
     }
 
     private void PrepareForChallenge(IChallengeContext challengeContext)
