@@ -1,11 +1,11 @@
 using System.Threading;
+using Keymaker.Api.Handlers;
+using Keymaker.Api.Services.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Sucker.Api.Handlers;
-using Sucker.Api.Services.Model;
 
-namespace Sucker.Api.Extensions;
+namespace Keymaker.Api.Extensions;
 
 public static class WebApplicationExtensions
 {

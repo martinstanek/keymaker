@@ -1,4 +1,4 @@
-﻿namespace Sucker.Api.Services.Model;
+﻿namespace Keymaker.Api.Services.Model;
 
 public sealed record CertificateParameters
 {

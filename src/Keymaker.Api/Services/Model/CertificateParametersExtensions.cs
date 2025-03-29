@@ -1,6 +1,6 @@
 ﻿using Certes;
 
-namespace Sucker.Api.Services.Model;
+namespace Keymaker.Api.Services.Model;
 
 internal static class CertificateParametersExtensions
 {

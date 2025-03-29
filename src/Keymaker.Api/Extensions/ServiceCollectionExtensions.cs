@@ -1,9 +1,9 @@
+using Keymaker.Api.Handlers;
+using Keymaker.Api.Services.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Sucker.Api.Handlers;
-using Sucker.Api.Services.Model;
 
-namespace Sucker.Api.Extensions;
+namespace Keymaker.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {

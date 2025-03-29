@@ -1,8 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Sucker.Api.Services.Model;
+using Keymaker.Api.Services.Model;
 
-namespace Sucker.Api.Services;
+namespace Keymaker.Api.Services;
 
 public interface IAcmeProvider
 {

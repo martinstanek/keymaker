@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sucker.Api.Services.Callback;
+namespace Keymaker.Api.Services.Callback;
 
 public sealed record AcmeCallback : IAcmeCallback
 {

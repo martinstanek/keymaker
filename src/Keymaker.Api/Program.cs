@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Sucker.Api.Extensions;
-using Sucker.Api.Services.Extensions;
+using Keymaker.Api.Extensions;
+using Keymaker.Api.Services.Extensions;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
