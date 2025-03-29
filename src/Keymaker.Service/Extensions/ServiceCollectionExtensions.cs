@@ -1,6 +1,7 @@
 using Keymaker.Service.Acme;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
+using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddSingleton<ICertStoreService, CertStoreService>()
+            .AddSingleton<IDnsService, DnsService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
             .AddSingleton<IAcmeService, AcmeService>();
