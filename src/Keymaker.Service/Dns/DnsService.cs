@@ -1,24 +1,83 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using CloudFlareDns;
+using CloudFlareDns.Objects.Record;
+using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service.Dns;
 
 public sealed class DnsService : IDnsService
 {
-    public Task AddTxtEntryAsync(string domain, string prefix, string value)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(domain);
-        ArgumentException.ThrowIfNullOrEmpty(prefix);
-        ArgumentException.ThrowIfNullOrEmpty(value);
+    private const int RecordTimeToLiveSeconds = 3600;
+    private const string RecordComment = "Added by the Keymaker.";
+    private const string RecordPrefix = "_acme-challenge";
 
-        return Task.CompletedTask;
+    private readonly ILogger<DnsService> _logger;
+    private readonly Lazy<CloudFlareDnsClient> _client;
+    private readonly SemaphoreSlim _semaphore = new(0, 1);
+
+    public DnsService(DnsServiceConfiguration configuration, ILogger<DnsService> logger)
+    {
+        _client = new Lazy<CloudFlareDnsClient>(() => new CloudFlareDnsClient(
+            xAuthKey: configuration.Key,
+            xAuthEmail: configuration.Email,
+            zoneIdentifier: configuration.Zone));
+        _logger = logger;
     }
 
-    public Task RemoveTxtEntryAsync(string domain, string prefix)
+    public async Task AddTxtEntryAsync(string domain, string value)
     {
         ArgumentException.ThrowIfNullOrEmpty(domain);
-        ArgumentException.ThrowIfNullOrEmpty(prefix);
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
-        return Task.CompletedTask;
+        var recordName = $"{RecordPrefix}.{domain}";
+
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            await _client.Value.Record.Create(
+                name: recordName,
+                content: value,
+                proxied: false,
+                RecordType.TXT,
+                ttl: RecordTimeToLiveSeconds,
+                RecordComment);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+
+            throw;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task RemoveTxtEntryAsync(string domain)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(domain);
+
+        var recordName = $"{RecordPrefix}.{domain}";
+
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            await _client.Value.Record.Delete(recordName);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+
+            throw;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 }

@@ -6,5 +6,9 @@ namespace Keymaker.Service.Acme;
 
 public interface IAcmeService
 {
-    Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken);
+    Task GetCertificateAsync(
+        CertificateParameters certificateParameters,
+        bool isWildCard,
+        uint waitForResponseSeconds,
+        CancellationToken cancellationToken);
 }

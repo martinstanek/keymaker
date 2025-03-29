@@ -7,6 +7,7 @@ using Certes.Acme;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
 using Microsoft.Extensions.Logging;
 
@@ -17,59 +18,63 @@ public sealed class AcmeService : IAcmeService
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
     private readonly ICertStoreService _certStoreService;
+    private readonly IDnsService _dnsService;
     private readonly ILogger<AcmeService> _logger;
 
     public AcmeService(
         IAcmeContextFactory acmeContextFactory,
         IAcmeCallback acmeCallback,
         ICertStoreService certStoreService,
+        IDnsService dnsService,
         ILogger<AcmeService> logger)
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;
         _certStoreService = certStoreService;
+        _dnsService = dnsService;
         _logger = logger;
     }
 
-    public async Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken)
+    public async Task GetCertificateAsync(CertificateParameters certificateParameters, bool isWildCard, uint waitForResponseSeconds, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
         ArgumentOutOfRangeException.ThrowIfZero(waitForResponseSeconds);
 
-        var order = await PlaceOrderAsync(certificateParameters);
+        var (acme, order) = await PlaceOrderAsync(certificateParameters);
 
         _logger.LogDebug($"Order negotiated {order.Location}");
 
-        await TriggerChallengeAsync(order, waitForResponseSeconds, cancellationToken);
+        await TriggerChallengeAsync(acme, order, isWildCard, waitForResponseSeconds, certificateParameters.Domain, cancellationToken);
 
-        return await GetCertificateBase64StringAsync(order, certificateParameters);
+        await GetCertificateBase64StringAsync(order, certificateParameters);
     }
 
-    private async Task<IOrderContext> PlaceOrderAsync(CertificateParameters certificateParameters)
+    private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
     {
         var acme = _acmeContextFactory.GetAcmeContext();
 
         await acme.NewAccount(certificateParameters.Contact, termsOfServiceAgreed: true);
 
-        return await acme.NewOrder([certificateParameters.Domain]);
+        var order = await acme.NewOrder([certificateParameters.Domain]);
+
+        return (acme, order);
     }
 
-    private async Task TriggerChallengeAsync(IOrderContext order, uint waitForResponseSeconds, CancellationToken cancellationToken)
+    private async Task TriggerChallengeAsync(
+        IAcmeContext acme,
+        IOrderContext order,
+        bool isWildCard,
+        uint waitForResponseSeconds,
+        string domain,
+        CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
-        var httpChallenge = await authorize.Http();
+        var challenge = isWildCard
+            ? await PrepareForDnsChallengeAsync(acme, authorize, domain)
+            : await PrepareForHttpChallengeAsync(authorize);
 
-        PrepareForChallenge(httpChallenge);
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _logger.LogDebug($"Validating the challenge {httpChallenge.Type}");
-
-        await httpChallenge.Validate();
+        await challenge.Validate();
 
         var i = 0;
 
@@ -79,9 +84,14 @@ public sealed class AcmeService : IAcmeService
 
             _logger.LogDebug($"Waiting ... {i}/{waitForResponseSeconds}s");
         }
+
+        if (isWildCard)
+        {
+            await _dnsService.RemoveTxtEntryAsync(domain);
+        }
     }
 
-    private async Task<string> GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
+    private async Task GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
     {
         _logger.LogDebug("Generating the certificate");
 
@@ -94,18 +104,29 @@ public sealed class AcmeService : IAcmeService
         var pemKey = privateKey.ToPem();
         var base64 = Convert.ToBase64String(pfx);
 
-        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, pem, pemKey);
-
-        return base64;
+        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, pem, pemKey, base64);
     }
 
-    private void PrepareForChallenge(IChallengeContext challengeContext)
+    private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)
     {
-        var keyAuthorize = challengeContext.KeyAuthz;
+        var httpChallenge = await authorize.Http();
+        var keyAuthorize = httpChallenge.KeyAuthz;
         var str = keyAuthorize.Split('.');
 
         _acmeCallback.Token = str[0];
         _acmeCallback.Thumbprint = str[1];
-        _acmeCallback.Location = challengeContext.Location.ToString();
+        _acmeCallback.Location = httpChallenge.Location.ToString();
+
+        return httpChallenge;
+    }
+
+    private async Task<IChallengeContext> PrepareForDnsChallengeAsync(IAcmeContext acme, IAuthorizationContext authorize, string domain)
+    {
+        var dnsChallenge = await authorize.Dns();
+        var dnsTxt = acme.AccountKey.DnsTxt(dnsChallenge.Token);
+
+        await _dnsService.AddTxtEntryAsync(domain, dnsTxt);
+
+        return dnsChallenge;
     }
 }

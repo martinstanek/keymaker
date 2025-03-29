@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Acme.Model;
+using Microsoft.AspNetCore.Http;
 
 namespace Keymaker.Api.Handlers;
 
@@ -18,12 +19,14 @@ public sealed class CertificateHandler
         _acmeService = acmeService;
     }
 
-    public Task<string> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
+    public async Task<IResult> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
     {
         var useParameters = string.IsNullOrWhiteSpace(parameters?.Contact)
             ? _parameters
             : parameters;
 
-        return _acmeService.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
+        await _acmeService.GetCertificateAsync(useParameters, isWildCard: true, WaitSeconds, cancellationToken);
+
+        return Results.NoContent();
     }
 }

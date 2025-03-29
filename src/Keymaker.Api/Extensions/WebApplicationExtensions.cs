@@ -18,7 +18,7 @@ public static class WebApplicationExtensions
                 [FromBody] CertificateParameters? parameters,
                 CancellationToken cancellationToken)
             => await handler.GetCertificateAsync(parameters, cancellationToken))
-            .Produces<string>(contentType: "text/plain");
+            .Produces<NoContentResult>();
 
         return webApplication;
     }
