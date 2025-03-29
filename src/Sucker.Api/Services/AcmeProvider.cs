@@ -90,15 +90,15 @@ public sealed class AcmeProvider : IAcmeProvider
         var pemKey = privateKey.ToPem();
         var base64 = Convert.ToBase64String(pfx);
 
-        await PersistPemsAsync(pem, pemKey);
+        await PersistPemsAsync(certificateParameters.Domain, pem, pemKey);
 
         return base64;
     }
 
-    private async Task PersistPemsAsync(string fullChain, string key)
+    private async Task PersistPemsAsync(string domain, string fullChain, string key)
     {
         var folder = DateTime.Now.ToString("yyyyMMddHHddss");
-        var path = Path.Combine("/data", folder);
+        var path = Path.Combine("/data", domain, folder);
 
         _logger.LogInformation($"Persisting certificates: {folder}");
 
