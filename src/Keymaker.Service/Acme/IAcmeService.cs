@@ -1,10 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Api.Services.Model;
+using Keymaker.Service.Acme.Model;
 
-namespace Keymaker.Api.Services;
+namespace Keymaker.Service.Acme;
 
-public interface IAcmeProvider
+public interface IAcmeService
 {
     Task<string> GetCertificateAsync(CertificateParameters certificateParameters, uint waitForResponseSeconds, CancellationToken cancellationToken);
 }

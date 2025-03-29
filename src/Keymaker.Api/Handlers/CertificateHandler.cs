@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Api.Services;
-using Keymaker.Api.Services.Model;
+using Keymaker.Service.Acme;
+using Keymaker.Service.Acme.Model;
 
 namespace Keymaker.Api.Handlers;
 
@@ -10,12 +10,12 @@ public sealed class CertificateHandler
     private const byte WaitSeconds = 60;
 
     private readonly CertificateParameters _parameters;
-    private readonly IAcmeProvider _acmeProvider;
+    private readonly IAcmeService _acmeService;
 
-    public CertificateHandler(CertificateParameters parameters, IAcmeProvider acmeProvider)
+    public CertificateHandler(CertificateParameters parameters, IAcmeService acmeService)
     {
         _parameters = parameters;
-        _acmeProvider = acmeProvider;
+        _acmeService = acmeService;
     }
 
     public Task<string> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
@@ -24,6 +24,6 @@ public sealed class CertificateHandler
             ? _parameters
             : parameters;
 
-        return _acmeProvider.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
+        return _acmeService.GetCertificateAsync(useParameters, WaitSeconds, cancellationToken);
     }
 }

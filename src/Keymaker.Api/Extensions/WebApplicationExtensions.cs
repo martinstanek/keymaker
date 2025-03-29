@@ -1,6 +1,6 @@
 using System.Threading;
 using Keymaker.Api.Handlers;
-using Keymaker.Api.Services.Model;
+using Keymaker.Service.Acme.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

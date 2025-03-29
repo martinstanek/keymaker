@@ -1,4 +1,4 @@
-﻿namespace Keymaker.Api.Services.Model;
+﻿namespace Keymaker.Service.Acme.Model;
 
 public sealed record CertificateParameters
 {

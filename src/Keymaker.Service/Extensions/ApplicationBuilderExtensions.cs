@@ -1,18 +1,17 @@
-﻿using System;
-using Keymaker.Api.Services.Callback;
-using Keymaker.Api.Services.Factories;
+using System;
+using Keymaker.Service.Acme.Callback;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keymaker.Api.Services.Extensions;
+namespace Keymaker.Service.Extensions;
 
-public static class AcmeExtensions
+public static class ApplicationBuilderExtensions
 {
     private const string WellKnownAcmeChallengeUrl = "/.well-known/acme-challenge";
     private const string ResponseContentType = "plain/text";
 
-    public static IApplicationBuilder UseAcmeHandler(this IApplicationBuilder app)
+    public static IApplicationBuilder UseKeymaker(this IApplicationBuilder app)
     {
         var callBack = app.ApplicationServices.GetRequiredService<IAcmeCallback>();
 
@@ -36,15 +35,5 @@ public static class AcmeExtensions
             }));
 
         return app;
-    }
-
-    public static IServiceCollection AddAcme(this IServiceCollection services)
-    {
-        services
-            .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
-            .AddSingleton<IAcmeCallback, AcmeCallback>()
-            .AddTransient<IAcmeProvider, AcmeProvider>();
-
-        return services;
     }
 }

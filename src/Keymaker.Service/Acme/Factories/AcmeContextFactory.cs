@@ -1,7 +1,7 @@
 ﻿using Certes;
 using Certes.Acme;
 
-namespace Keymaker.Api.Services.Factories;
+namespace Keymaker.Service.Acme.Factories;
 
 public class AcmeContextFactory : IAcmeContextFactory
 {

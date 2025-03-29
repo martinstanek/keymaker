@@ -3,24 +3,24 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Certes;
 using Certes.Acme;
-using Keymaker.Api.Services.Callback;
-using Keymaker.Api.Services.Factories;
-using Keymaker.Api.Services.Model;
+using Keymaker.Service.Acme.Callback;
+using Keymaker.Service.Acme.Factories;
+using Keymaker.Service.Acme.Model;
+using Microsoft.Extensions.Logging;
 
-namespace Keymaker.Api.Services;
+namespace Keymaker.Service.Acme;
 
-public sealed class AcmeProvider : IAcmeProvider
+public sealed class AcmeService : IAcmeService
 {
     private const int OneSecond = 1000;
 
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
-    private readonly ILogger<AcmeProvider> _logger;
+    private readonly ILogger<AcmeService> _logger;
 
-    public AcmeProvider(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback, ILogger<AcmeProvider> logger)
+    public AcmeService(IAcmeContextFactory acmeContextFactory, IAcmeCallback acmeCallback, ILogger<AcmeService> logger)
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;

@@ -1,5 +1,5 @@
 using Keymaker.Api.Handlers;
-using Keymaker.Api.Services.Model;
+using Keymaker.Service.Acme.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

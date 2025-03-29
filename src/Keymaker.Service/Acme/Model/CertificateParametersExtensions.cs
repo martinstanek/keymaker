@@ -1,6 +1,6 @@
 ﻿using Certes;
 
-namespace Keymaker.Api.Services.Model;
+namespace Keymaker.Service.Acme.Model;
 
 internal static class CertificateParametersExtensions
 {

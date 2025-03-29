@@ -1,6 +1,6 @@
 ﻿using Certes;
 
-namespace Keymaker.Api.Services.Factories;
+namespace Keymaker.Service.Acme.Factories;
 
 public interface IAcmeContextFactory
 {

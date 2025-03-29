@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Keymaker.Api.Services.Callback;
+namespace Keymaker.Service.Acme.Callback;
 
 public sealed record AcmeCallback : IAcmeCallback
 {

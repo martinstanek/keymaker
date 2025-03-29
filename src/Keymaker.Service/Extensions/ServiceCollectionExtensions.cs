@@ -1,0 +1,19 @@
+using Keymaker.Service.Acme;
+using Keymaker.Service.Acme.Callback;
+using Keymaker.Service.Acme.Factories;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Keymaker.Service.Extensions;
+
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddKeymaker(this IServiceCollection services)
+    {
+        services
+            .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
+            .AddSingleton<IAcmeCallback, AcmeCallback>()
+            .AddSingleton<IAcmeService, AcmeService>();
+
+        return services;
+    }
+}
