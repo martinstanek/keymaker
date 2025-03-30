@@ -135,6 +135,22 @@ public sealed class AcmeService : IAcmeService
 
         await _dnsService.AddTxtEntryAsync(domain, dnsTxt);
 
-        return dnsChallenge;
+        var i = 0;
+
+        while (i++ < 600)
+        {
+            var preparedKey = await _dnsService.GetTxtEntryAsync(domain);
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            _logger.LogDebug($"Waiting for the DNS propagation: {preparedKey}");
+
+            if (preparedKey.Contains(dnsTxt))
+            {
+                return dnsChallenge;
+            }
+        }
+
+        throw new InvalidOperationException("DNS not prepared");
     }
 }
