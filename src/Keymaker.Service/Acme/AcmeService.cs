@@ -45,7 +45,7 @@ public sealed class AcmeService : IAcmeService
 
         _logger.LogDebug($"Order negotiated {order.Location}");
 
-        await TriggerChallengeAsync(acme, order, isWildCard, waitForResponseSeconds, "awitec.net", certificateParameters, cancellationToken);
+        await TriggerChallengeAsync(acme, order, isWildCard, waitForResponseSeconds, "lan.awitec.net", certificateParameters, cancellationToken);
     }
 
     private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
