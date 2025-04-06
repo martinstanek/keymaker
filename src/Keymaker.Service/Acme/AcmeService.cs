@@ -16,9 +16,10 @@ namespace Keymaker.Service.Acme;
 public sealed class AcmeService : IAcmeService
 {
     private const int WaitForHttpCallbackSeconds = 60;
-    private const int WaitForDnsPropagationSeconds = 60;
+    private const int WaitForDnsPropagationSeconds = 3600;
     private const int WaitForDnsChallengeOrderFinalisationSeconds = 60;
     private const int CheckOrderEverySeconds = 10;
+    private const int CheckDnsPropagationEverySeconds = 10;
 
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
@@ -180,16 +181,20 @@ public sealed class AcmeService : IAcmeService
     {
         var dnsChallenge = await authorize.Dns();
         var dnsTxt = acme.AccountKey.DnsTxt(dnsChallenge.Token);
+        var i = 0;
 
         await _dnsService.AddTxtEntryAsync(parameters.DnsChallengeSetDomain, dnsTxt);
 
-        var i = 0;
-
         while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsPropagationSeconds)
         {
-            var preparedKey = await _dnsService.GetTxtEntryAsync(parameters.DnsChallengeCheckDomain);
-
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+
+            if (i % CheckDnsPropagationEverySeconds != 0)
+            {
+                continue;
+            }
+
+            var preparedKey = await _dnsService.GetTxtEntryAsync(parameters.DnsChallengeCheckDomain);
 
             _logger.LogDebug($"Waiting for the DNS propagation at {parameters.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
 

@@ -11,7 +11,7 @@ namespace Keymaker.Service.Dns;
 
 public sealed class DnsService : IDnsService
 {
-    private const int RecordTimeToLiveSeconds = 15 * 60;
+    private const int RecordTimeToLiveSeconds = 300;
     private const string RecordComment = "Added by the Keymaker.";
 
     private readonly ILogger<DnsService> _logger;
