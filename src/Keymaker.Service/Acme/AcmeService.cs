@@ -191,7 +191,7 @@ public sealed class AcmeService : IAcmeService
 
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-            _logger.LogDebug($"Waiting for the DNS propagation, expected value: {dnsTxt}, current value: {preparedKey}");
+            _logger.LogDebug($"Waiting for the DNS propagation at {parameters.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {

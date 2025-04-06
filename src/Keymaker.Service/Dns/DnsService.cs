@@ -13,7 +13,6 @@ public sealed class DnsService : IDnsService
 {
     private const int RecordTimeToLiveSeconds = 15 * 60;
     private const string RecordComment = "Added by the Keymaker.";
-    private const string RecordPrefix = "_acme-challenge";
 
     private readonly ILogger<DnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
