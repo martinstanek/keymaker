@@ -35,8 +35,6 @@ public sealed class DnsService : IDnsService
         ArgumentException.ThrowIfNullOrEmpty(domain);
         ArgumentException.ThrowIfNullOrEmpty(value);
 
-        var recordName = $"{RecordPrefix}.{domain}";
-
         await _semaphore.WaitAsync();
 
         _logger.LogDebug($"Setting a TXT record with {value} for the domain: {domain}");
@@ -44,7 +42,7 @@ public sealed class DnsService : IDnsService
         try
         {
             await _dnsClient.Value.Record.Create(
-                name: recordName,
+                name: domain,
                 content: value,
                 proxied: false,
                 RecordType.TXT,
@@ -65,13 +63,13 @@ public sealed class DnsService : IDnsService
 
     public async Task<string> GetTxtEntryAsync(string domain)
     {
-        var domainRecord = $"{RecordPrefix}.{domain}";
+        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
 
         await _semaphore.WaitAsync();
 
         try
         {
-            var result = await _lookupClient.Value.QueryAsync(domainRecord, QueryType.TXT);
+            var result = await _lookupClient.Value.QueryAsync(domain, QueryType.TXT);
 
             return result.Answers
                 .TxtRecords()

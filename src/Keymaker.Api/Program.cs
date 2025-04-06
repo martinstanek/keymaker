@@ -1,19 +1,19 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Keymaker.Api.Extensions;
+using Keymaker.Api.OpenApi.Extensions;
 using Keymaker.Service.Extensions;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.ConfigureHandlers();
 builder.Services.AddKeymaker();
-builder.Services.AddOpenApi();
-builder.Services.AddServices(builder.Configuration);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
+app.UseSwaggerApiDoc("Keymaker API");
 app.UseKeymaker();
 app.UseCustomEndpoints();
 app.Run();

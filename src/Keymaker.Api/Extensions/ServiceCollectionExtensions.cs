@@ -2,17 +2,28 @@ using System;
 using Keymaker.Api.Handlers;
 using Keymaker.Service.Acme.Model;
 using Keymaker.Service.Dns;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Keymaker.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureHandlers(this IServiceCollection services)
     {
-        var defaults = configuration.GetSection(nameof(CertificateParameters)).Get<CertificateParameters>()
-                       ?? CertificateParameters.Empty;
+        var requestConfig = new CertificateParameters
+        {
+            Contact = Environment.GetEnvironmentVariable("KEYMAKER_CONTACT") ?? string.Empty,
+            Domain = Environment.GetEnvironmentVariable("KEYMAKER_DOMAIN") ?? string.Empty,
+            CertificateName = Environment.GetEnvironmentVariable("KEYMAKER_CERTNAME") ?? string.Empty,
+            Password = Environment.GetEnvironmentVariable("KEYMAKER_PASSWORD") ?? string.Empty,
+            CountryName = Environment.GetEnvironmentVariable("KEYMAKER_COUNTRY") ?? string.Empty,
+            State = Environment.GetEnvironmentVariable("KEYMAKER_STATE") ?? string.Empty,
+            Locality = Environment.GetEnvironmentVariable("KEYMAKER_LOCALITY") ?? string.Empty,
+            Organization = Environment.GetEnvironmentVariable("KEYMAKER_ORG") ?? string.Empty,
+            OrganizationUnit = Environment.GetEnvironmentVariable("KEYMAKER_UNIT") ?? string.Empty,
+            DnsChallengeCheckDomain = Environment.GetEnvironmentVariable("KEYMAKER_DNSCHECKDOMAIN") ?? string.Empty,
+            DnsChallengeSetDomain = Environment.GetEnvironmentVariable("KEYMAKER_DNSSETDOMAIN") ?? string.Empty
+        };
 
         var dnsConfig = new DnsServiceConfiguration
         {
@@ -22,8 +33,9 @@ public static class ServiceCollectionExtensions
         };
 
         return services
-            .AddSingleton(defaults)
             .AddSingleton(dnsConfig)
+            .AddSingleton(requestConfig)
+            .AddSingleton<DnsHandler>()
             .AddSingleton<CertificateHandler>();
     }
 }

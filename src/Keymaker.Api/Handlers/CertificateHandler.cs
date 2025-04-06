@@ -8,8 +8,6 @@ namespace Keymaker.Api.Handlers;
 
 public sealed class CertificateHandler
 {
-    private const int WaitSeconds = 600;
-
     private readonly CertificateParameters _parameters;
     private readonly IAcmeService _acmeService;
 
@@ -19,14 +17,25 @@ public sealed class CertificateHandler
         _acmeService = acmeService;
     }
 
-    public Task<IResult> GetCertificateAsync(CertificateParameters? parameters, CancellationToken cancellationToken)
+    public Task<IResult> TriggerDnsChallengeAsync(CertificateParameters? parameters)
     {
-        var useParameters = string.IsNullOrWhiteSpace(parameters?.Contact)
-            ? _parameters
-            : parameters;
+        var mergedParameters = parameters.MergeWithDefaults(_parameters);
 
         Task.Factory.StartNew(
-            () => _acmeService.GetCertificateAsync(useParameters, isWildCard: true, WaitSeconds, CancellationToken.None),
+            () => _acmeService.RequestCertificateViaDnsChallengeAsync(mergedParameters, CancellationToken.None),
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
+
+        return Task.FromResult(Results.NoContent());
+    }
+
+    public Task<IResult> TriggerHttpChallenge(CertificateParameters? parameters)
+    {
+        var mergedParameters = parameters.MergeWithDefaults(_parameters);
+
+        Task.Factory.StartNew(
+            () => _acmeService.RequestCertificateViaHttpChallengeAsync(mergedParameters, CancellationToken.None),
             CancellationToken.None,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);

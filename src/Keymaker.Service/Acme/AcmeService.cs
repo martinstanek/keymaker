@@ -15,6 +15,11 @@ namespace Keymaker.Service.Acme;
 
 public sealed class AcmeService : IAcmeService
 {
+    private const int WaitForHttpCallbackSeconds = 60;
+    private const int WaitForDnsPropagationSeconds = 60;
+    private const int WaitForDnsChallengeOrderFinalisationSeconds = 60;
+    private const int CheckOrderEverySeconds = 10;
+
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
     private readonly ICertStoreService _certStoreService;
@@ -35,6 +40,40 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
+    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
+
+        var (acme, order) = await PlaceOrderAsync(certificateParameters);
+
+        _logger.LogDebug($"Order negotiated {order.Location}");
+
+        await PerformChallengeAsync(
+            acme,
+            order,
+            isDnsChallenge: true,
+            certificateParameters,
+            cancellationToken);
+
+        await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
+    }
+
+    public async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
+
+        var (acme, order) = await PlaceOrderAsync(certificateParameters);
+
+        _logger.LogDebug($"Order negotiated {order.Location}");
+
+        await PerformChallengeAsync(
+            acme,
+            order,
+            isDnsChallenge: false,
+            certificateParameters,
+            cancellationToken);
+    }
+
     public async Task GetCertificateAsync(CertificateParameters certificateParameters, bool isWildCard, uint waitForResponseSeconds, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
@@ -44,15 +83,6 @@ public sealed class AcmeService : IAcmeService
         var (acme, order) = await PlaceOrderAsync(certificateParameters);
 
         _logger.LogDebug($"Order negotiated {order.Location}");
-
-        await TriggerChallengeAsync(
-            acme,
-            order,
-            isWildCard,
-            waitForResponseSeconds,
-            "lan@",
-            certificateParameters,
-            cancellationToken);
     }
 
     private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
@@ -66,47 +96,58 @@ public sealed class AcmeService : IAcmeService
         return (acme, order);
     }
 
-    private async Task TriggerChallengeAsync(
+    private async Task PerformChallengeAsync(
         IAcmeContext acme,
         IOrderContext order,
-        bool isWildCard,
-        uint waitForResponseSeconds,
-        string domain,
+        bool isDnsChallenge,
         CertificateParameters certificateParameters,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
-        var challenge = isWildCard
-            ? await PrepareForDnsChallengeAsync(acme, authorize, domain)
+        var challenge = isDnsChallenge
+            ? await PrepareForDnsChallengeAsync(acme, authorize, certificateParameters, cancellationToken)
             : await PrepareForHttpChallengeAsync(authorize);
 
-        var validatedChallenge =  await challenge.Validate();
+        var validatedChallenge = await challenge.Validate();
 
         _logger.LogDebug($"Validating challenge: {validatedChallenge.Type}");
+    }
 
+    private async Task WaitForHttpCallbackAsync(CancellationToken cancellationToken)
+    {
         var i = 0;
 
-        while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < waitForResponseSeconds)
+        while (!cancellationToken.IsCancellationRequested && !_acmeCallback.Hit.HasValue && i++ < WaitForHttpCallbackSeconds)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        }
+    }
+
+    private async Task WaitForDnsOrderFinalisationAsync(IOrderContext order, CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    {
+        var i = 0;
+
+        while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsChallengeOrderFinalisationSeconds)
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-            _logger.LogDebug($"Waiting ... {i}/{waitForResponseSeconds}s");
-
-            if (i % 10 == 0)
+            if (i % CheckOrderEverySeconds != 0)
             {
-                try
-                {
-                    await GetCertificateBase64StringAsync(order, certificateParameters);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, e.Message);
-                }
+                continue;
+            }
+
+            try
+            {
+                await FinaliseOrderAsync(order, certificateParameters);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
             }
         }
     }
 
-    private async Task GetCertificateBase64StringAsync(IOrderContext order, CertificateParameters certificateParameters)
+    private async Task FinaliseOrderAsync(IOrderContext order, CertificateParameters certificateParameters)
     {
         _logger.LogDebug("Generating the certificate");
 
@@ -135,22 +176,22 @@ public sealed class AcmeService : IAcmeService
         return httpChallenge;
     }
 
-    private async Task<IChallengeContext> PrepareForDnsChallengeAsync(IAcmeContext acme, IAuthorizationContext authorize, string domain)
+    private async Task<IChallengeContext> PrepareForDnsChallengeAsync(IAcmeContext acme, IAuthorizationContext authorize, CertificateParameters parameters, CancellationToken cancellationToken)
     {
         var dnsChallenge = await authorize.Dns();
         var dnsTxt = acme.AccountKey.DnsTxt(dnsChallenge.Token);
 
-        await _dnsService.AddTxtEntryAsync(domain, dnsTxt);
+        await _dnsService.AddTxtEntryAsync(parameters.DnsChallengeSetDomain, dnsTxt);
 
         var i = 0;
 
-        while (i++ < 600)
+        while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsPropagationSeconds)
         {
-            var preparedKey = await _dnsService.GetTxtEntryAsync(domain);
+            var preparedKey = await _dnsService.GetTxtEntryAsync(parameters.DnsChallengeCheckDomain);
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-            _logger.LogDebug($"Waiting for the DNS propagation: {preparedKey}");
+            _logger.LogDebug($"Waiting for the DNS propagation, expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {

@@ -20,6 +20,10 @@ public sealed record CertificateParameters
 
     public required string OrganizationUnit { get; init; } = string.Empty;
 
+    public required string DnsChallengeSetDomain { get; init; } = string.Empty;
+
+    public required string DnsChallengeCheckDomain { get; init; } = string.Empty;
+
     public static CertificateParameters Empty => new()
     {
         Contact = string.Empty,
@@ -30,6 +34,8 @@ public sealed record CertificateParameters
         State = string.Empty,
         Locality = string.Empty,
         Organization = string.Empty,
-        OrganizationUnit = string.Empty
+        OrganizationUnit = string.Empty,
+        DnsChallengeCheckDomain = string.Empty,
+        DnsChallengeSetDomain = string.Empty
     };
 }
