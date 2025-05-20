@@ -1,4 +1,5 @@
 ﻿using Certes;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme.Model;
 

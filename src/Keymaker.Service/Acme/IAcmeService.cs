@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme;
 

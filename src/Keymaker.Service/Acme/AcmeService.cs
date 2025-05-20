@@ -8,6 +8,7 @@ using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Model;
 using Keymaker.Service.Dns;
+using Keymaker.Service.Model;
 using Keymaker.Service.Store;
 using Microsoft.Extensions.Logging;
 

@@ -1,7 +1,7 @@
 using System;
 using Keymaker.Api.Handlers;
-using Keymaker.Service.Acme.Model;
 using Keymaker.Service.Dns;
+using Keymaker.Service.Model;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Keymaker.Api.Extensions;

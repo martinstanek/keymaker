@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Model;
 using Microsoft.AspNetCore.Http;
 
 namespace Keymaker.Api.Handlers;

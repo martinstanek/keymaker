@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Keymaker.Api.Handlers;
 using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Api.Extensions;
 
