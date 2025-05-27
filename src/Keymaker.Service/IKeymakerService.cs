@@ -1,12 +1,14 @@
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Keymaker.Service.Model;
+using System.Collections.Immutable;
+using Keymaker.Model;
 
 namespace Keymaker.Service;
 
 public interface IKeymakerService
 {
-    void RequestCertificate(CertificateParameters parameters, CertificateRequestChallengeType challengeType);
+    void RequestCertificate(CertificateRequestChallengeType challengeType);
+
+    ChallengeParameters GetChallengeParameters();
 
     CertificateRequestInfo GetCurrentRequestStatus();
 

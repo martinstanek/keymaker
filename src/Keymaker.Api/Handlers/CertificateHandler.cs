@@ -1,46 +1,29 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Keymaker.Service.Acme;
-using Keymaker.Service.Acme.Model;
-using Keymaker.Service.Model;
+using Keymaker.Model;
+using Keymaker.Service;
 using Microsoft.AspNetCore.Http;
 
 namespace Keymaker.Api.Handlers;
 
 public sealed class CertificateHandler
 {
-    private readonly CertificateParameters _parameters;
-    private readonly IAcmeService _acmeService;
+    private readonly IKeymakerService _keymakerService;
 
-    public CertificateHandler(CertificateParameters parameters, IAcmeService acmeService)
+    public CertificateHandler(IKeymakerService keymakerService)
     {
-        _parameters = parameters;
-        _acmeService = acmeService;
+        _keymakerService = keymakerService;
     }
 
-    public Task<IResult> TriggerDnsChallengeAsync(CertificateParameters? parameters)
+    public IResult TriggerDnsChallengeAsync()
     {
-        var mergedParameters = parameters.MergeWithDefaults(_parameters);
+        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns);
 
-        Task.Factory.StartNew(
-            () => _acmeService.RequestCertificateViaDnsChallengeAsync(mergedParameters, CancellationToken.None),
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
-
-        return Task.FromResult(Results.NoContent());
+        return Results.NoContent();
     }
 
-    public Task<IResult> TriggerHttpChallenge(CertificateParameters? parameters)
+    public IResult TriggerHttpChallenge()
     {
-        var mergedParameters = parameters.MergeWithDefaults(_parameters);
+        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns);
 
-        Task.Factory.StartNew(
-            () => _acmeService.RequestCertificateViaHttpChallengeAsync(mergedParameters, CancellationToken.None),
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
-
-        return Task.FromResult(Results.NoContent());
+        return Results.NoContent();
     }
 }

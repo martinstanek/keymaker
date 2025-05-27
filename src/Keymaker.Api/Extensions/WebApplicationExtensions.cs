@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Keymaker.Api.Handlers;
-using Keymaker.Service.Acme.Model;
-using Keymaker.Service.Model;
 
 namespace Keymaker.Api.Extensions;
 
@@ -14,26 +12,17 @@ public static class WebApplicationExtensions
     {
         var api = webApplication.MapGroup("/");
 
-        api.MapPost("/certificate/dns", async (
-                [FromServices] CertificateHandler handler,
-                [FromBody] CertificateParameters? parameters)
-            => await handler.TriggerDnsChallengeAsync(parameters))
+        api.MapGet("/certificate/dns", (
+                [FromServices] CertificateHandler handler)
+            => handler.TriggerDnsChallengeAsync())
             .Produces<NoContentResult>();
 
-        api.MapPost("/certificate/http", async (
-                    [FromServices] CertificateHandler handler,
-                    [FromBody] CertificateParameters? parameters)
-                => await handler.TriggerHttpChallenge(parameters))
+        api.MapGet("/certificate/http", (
+                    [FromServices] CertificateHandler handler)
+                => handler.TriggerHttpChallenge())
             .Produces<NoContentResult>();
 
-        api.MapPut("/dns", async (
-                    [FromServices] DnsHandler handler,
-                    [FromQuery] [Required] string domain,
-                    [FromQuery] [Required] string value)
-                => await handler.SetDnsTxtEntryAsync(domain, value))
-            .Produces<NoContentResult>();
-
-        api.MapGet("/dns", async (
+        api.MapGet("/dns/txt", async (
                     [FromServices] DnsHandler handler,
                     [FromQuery] [Required] string domain)
                 => await handler.GetDnsTxtEntryAsync(domain))

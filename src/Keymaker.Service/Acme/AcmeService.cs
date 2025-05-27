@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Certes;
-using Certes.Acme;
+using Microsoft.Extensions.Logging;
+using Keymaker.Model;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
-using Keymaker.Service.Acme.Model;
+using Keymaker.Service.Extensions;
 using Keymaker.Service.Dns;
-using Keymaker.Service.Model;
 using Keymaker.Service.Store;
-using Microsoft.Extensions.Logging;
+using Certes;
+using Certes.Acme;
 
 namespace Keymaker.Service.Acme;
 
@@ -42,7 +42,7 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
-    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, DnsServiceConfiguration dnsConfig, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
@@ -55,6 +55,7 @@ public sealed class AcmeService : IAcmeService
             order,
             isDnsChallenge: true,
             certificateParameters,
+            dnsConfig,
             cancellationToken);
 
         await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
@@ -73,6 +74,7 @@ public sealed class AcmeService : IAcmeService
             order,
             isDnsChallenge: false,
             certificateParameters,
+            DnsServiceConfiguration.Empty,
             cancellationToken);
     }
 
@@ -103,11 +105,12 @@ public sealed class AcmeService : IAcmeService
         IOrderContext order,
         bool isDnsChallenge,
         CertificateParameters certificateParameters,
+        DnsServiceConfiguration dnsConfig,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
         var challenge = isDnsChallenge
-            ? await PrepareForDnsChallengeAsync(acme, authorize, certificateParameters, cancellationToken)
+            ? await PrepareForDnsChallengeAsync(acme, authorize, certificateParameters, dnsConfig, cancellationToken)
             : await PrepareForHttpChallengeAsync(authorize);
 
         var validatedChallenge = await challenge.Validate();
@@ -178,13 +181,18 @@ public sealed class AcmeService : IAcmeService
         return httpChallenge;
     }
 
-    private async Task<IChallengeContext> PrepareForDnsChallengeAsync(IAcmeContext acme, IAuthorizationContext authorize, CertificateParameters parameters, CancellationToken cancellationToken)
+    private async Task<IChallengeContext> PrepareForDnsChallengeAsync(
+        IAcmeContext acme,
+        IAuthorizationContext authorize,
+        CertificateParameters parameters,
+        DnsServiceConfiguration dnsConfig,
+        CancellationToken cancellationToken)
     {
         var dnsChallenge = await authorize.Dns();
         var dnsTxt = acme.AccountKey.DnsTxt(dnsChallenge.Token);
         var i = 0;
 
-        await _dnsService.AddTxtEntryAsync(parameters.DnsChallengeSetDomain, dnsTxt);
+        await _dnsService.AddTxtEntryAsync(dnsConfig.DnsChallengeSetDomain, dnsTxt);
 
         while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsPropagationSeconds)
         {
@@ -195,9 +203,9 @@ public sealed class AcmeService : IAcmeService
                 continue;
             }
 
-            var preparedKey = await _dnsService.GetTxtEntryAsync(parameters.DnsChallengeCheckDomain);
+            var preparedKey = await _dnsService.GetTxtEntryAsync(dnsConfig.DnsChallengeCheckDomain);
 
-            _logger.LogDebug($"Waiting for the DNS propagation at {parameters.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
+            _logger.LogDebug($"Waiting for the DNS propagation at {dnsConfig.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {
