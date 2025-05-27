@@ -7,8 +7,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection ConfigureHandlers(this IServiceCollection services)
     {
-        return services
-            .AddSingleton<DnsHandler>()
-            .AddSingleton<CertificateHandler>();
+        return services.AddSingleton<RequestHandler>();
     }
 }

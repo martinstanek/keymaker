@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
+using Keymaker.Service.Acme;
 
 namespace Keymaker.Service;
 
@@ -8,7 +10,18 @@ namespace Keymaker.Service;
 
 public sealed class KeyMakerService : IKeymakerService
 {
-    public void RequestCertificate(CertificateRequestChallengeType challengeType)
+    private readonly IAcmeService _acmeService;
+    private readonly CertificateParameters _certificateParameters;
+    private readonly DnsServiceConfiguration _dnsServiceConfiguration;
+
+    public KeyMakerService(IAcmeService acmeService, CertificateParameters certificateParameters, DnsServiceConfiguration dnsServiceConfiguration)
+    {
+        _acmeService = acmeService;
+        _certificateParameters = certificateParameters;
+        _dnsServiceConfiguration = dnsServiceConfiguration;
+    }
+
+    public void RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)
     {
         /*
         Task.Factory.StartNew(
@@ -23,16 +36,28 @@ public sealed class KeyMakerService : IKeymakerService
 
     public ChallengeParameters GetChallengeParameters()
     {
-        throw new System.NotImplementedException();
+        return new ChallengeParameters
+        {
+            CertificateName = _certificateParameters.CertificateName,
+            Contact = _certificateParameters.Contact,
+            CountryName = _certificateParameters.CountryName,
+            Domain = _certificateParameters.Domain,
+            Locality = _certificateParameters.Locality,
+            Organization = _certificateParameters.Organization,
+            OrganizationUnit = _certificateParameters.OrganizationUnit,
+            State = _certificateParameters.State,
+            DnsChallengeCheckDomain = _dnsServiceConfiguration.DnsChallengeCheckDomain,
+            DnsChallengeSetDomain = _dnsServiceConfiguration.DnsChallengeSetDomain
+        };
     }
 
-    public CertificateRequestInfo GetCurrentRequestStatus()
+    public ChallengeStatus GetCurrentRequestStatus()
     {
-        throw new System.NotImplementedException();
+        return ChallengeStatus.Empty;
     }
 
     public Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync()
     {
-        throw new System.NotImplementedException();
+        return Task.FromResult(ImmutableArray.Create(CertificateInfo.Empty));
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace Keymaker.Model;
 
-public sealed record CertificateRequestInfo
+public sealed record ChallengeStatus
 {
     public required uint PerformedChecks { get; init; }
 
@@ -15,4 +15,14 @@ public sealed record CertificateRequestInfo
     public required CertificateRequestStatus Status { get; init; }
 
     public required CertificateRequestChallengeType Challenge { get; init; }
+
+    public static ChallengeStatus Empty => new()
+    {
+        PerformedChecks = 0,
+        DnsRecordValue = string.Empty,
+        Requested = DateTime.MinValue,
+        ValidUntil = DateTime.MinValue,
+        Status = CertificateRequestStatus.NotRequested,
+        Challenge = CertificateRequestChallengeType.Http
+    };
 }

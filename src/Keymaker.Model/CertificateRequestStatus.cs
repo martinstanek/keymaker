@@ -6,5 +6,6 @@ public enum CertificateRequestStatus
     WaitingForHttpVerification,
     WaitingForDnsVerification,
     TimeOut,
-    Success
+    Success,
+    NotRequested
 }

@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     {
         var certificateParams = EnvironmentReader.GetCertificateParametersFromEnvironment();
         var dnsServiceConfig = EnvironmentReader.GetDnsServiceConfigurationFromEnvironment();
-        
+
         return services
             .AddSingleton(dnsServiceConfig)
             .AddSingleton(certificateParams)
@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IDnsService, DnsService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
-            .AddSingleton<IAcmeService, AcmeService>();
+            .AddSingleton<IAcmeService, AcmeService>()
+            .AddSingleton<IKeymakerService, KeyMakerService>();
     }
 }
