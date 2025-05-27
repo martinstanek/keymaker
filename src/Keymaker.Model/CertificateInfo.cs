@@ -1,4 +1,6 @@
-﻿namespace Keymaker.Model;
+﻿using System;
+
+namespace Keymaker.Model;
 
 public sealed record CertificateInfo
 {

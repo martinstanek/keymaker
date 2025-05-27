@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Keymaker.Api.Extensions;
-using Keymaker.Api.OpenApi.Extensions;
+using Keymaker.Infra.OpenApi.Extensions;
 using Keymaker.Service.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
