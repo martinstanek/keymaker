@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
+using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
 
@@ -13,11 +14,17 @@ public sealed class KeyMakerService : IKeymakerService
 {
     private readonly DnsServiceConfiguration _dnsServiceConfiguration;
     private readonly CertificateParameters _certificateParameters;
+    private readonly ICertStoreService _storeService;
     private readonly IAcmeService _acmeService;
 
-    public KeyMakerService(IAcmeService acmeService, CertificateParameters certificateParameters, DnsServiceConfiguration dnsServiceConfiguration)
+    public KeyMakerService(
+        IAcmeService acmeService,
+        ICertStoreService storeService,
+        CertificateParameters certificateParameters,
+        DnsServiceConfiguration dnsServiceConfiguration)
     {
         _acmeService = acmeService;
+        _storeService = storeService;
         _certificateParameters = certificateParameters;
         _dnsServiceConfiguration = dnsServiceConfiguration;
     }
@@ -73,6 +80,6 @@ public sealed class KeyMakerService : IKeymakerService
 
     public Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync()
     {
-        return Task.FromResult(ImmutableArray.Create(CertificateInfo.Empty));
+        return _storeService.GetCertificatesAsync();
     }
 }

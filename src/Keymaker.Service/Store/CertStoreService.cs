@@ -1,7 +1,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
+using Keymaker.Model;
 
 namespace Keymaker.Service.Store;
 
@@ -44,5 +47,39 @@ public sealed class CertStoreService : ICertStoreService
         {
             _logger.LogError(e, e.Message);
         }
+    }
+
+    public async Task<ImmutableArray<CertificateInfo>> GetCertificatesAsync()
+    {
+        if (!Directory.Exists(TopLevelFolderName))
+        {
+            return ImmutableArray<CertificateInfo>.Empty;
+        }
+
+        var result = new List<CertificateInfo>();
+        var domains = Directory.GetDirectories(TopLevelFolderName);
+
+        foreach (var domain in domains)
+        {
+            var path = Path.Combine(TopLevelFolderName, domain);
+            var times = Directory.GetDirectories(path);
+
+            foreach (var time in times)
+            {
+                var info = new CertificateInfo
+                {
+                    Domain = domain,
+                    Obtained = DateTime.MinValue,
+                    Expiry = DateTime.MinValue,
+                    Base64Pfx = await File.ReadAllTextAsync(Path.Combine(path, time, PfxFileName)),
+                    FullChainPem = await File.ReadAllTextAsync(Path.Combine(path, time, FullChainFileName)),
+                    PrivateKeyPem = await File.ReadAllTextAsync(Path.Combine(path, time, PrivateKeyFileName))
+                };
+
+                result.Add(info);
+            }
+        }
+
+        return result.ToImmutableArray();
     }
 }
