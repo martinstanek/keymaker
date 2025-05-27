@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,13 +7,13 @@ using Keymaker.Service.Acme;
 
 namespace Keymaker.Service;
 
-// TODO lifecycle management, docker kill signal, docker health
+// TODO lifecycle management, docker kill signal, docker health, fluent validation
 
 public sealed class KeyMakerService : IKeymakerService
 {
-    private readonly IAcmeService _acmeService;
-    private readonly CertificateParameters _certificateParameters;
     private readonly DnsServiceConfiguration _dnsServiceConfiguration;
+    private readonly CertificateParameters _certificateParameters;
+    private readonly IAcmeService _acmeService;
 
     public KeyMakerService(IAcmeService acmeService, CertificateParameters certificateParameters, DnsServiceConfiguration dnsServiceConfiguration)
     {
@@ -21,18 +22,32 @@ public sealed class KeyMakerService : IKeymakerService
         _dnsServiceConfiguration = dnsServiceConfiguration;
     }
 
-    public void RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)
+    public bool RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)
     {
-        /*
-        Task.Factory.StartNew(
-            () => _acmeService.RequestCertificateViaDnsChallengeAsync(_parameters, CancellationToken.None),
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
-        */
+        switch (challengeType)
+        {
+            case CertificateRequestChallengeType.Dns:
+                Task.Factory.StartNew(
+                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _dnsServiceConfiguration, token),
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+                break;
+            case CertificateRequestChallengeType.Http:
+                Task.Factory.StartNew(
+                    () => _acmeService.RequestCertificateViaHttpChallengeAsync(_certificateParameters, token),
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(challengeType), challengeType, null);
+        }
 
-        throw new System.NotImplementedException();
+        return true;
     }
+
+    public void CancelCurrentChallenge() { }
 
     public ChallengeParameters GetChallengeParameters()
     {

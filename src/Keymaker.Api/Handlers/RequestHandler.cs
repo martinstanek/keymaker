@@ -21,14 +21,23 @@ public sealed class RequestHandler
 
     public IResult TriggerDnsChallengeAsync()
     {
-        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns, CancellationToken.None);
+        var triggered = _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns, CancellationToken.None);
 
-        return Results.NoContent();
+        return triggered
+            ? Results.NoContent()
+            : Results.Problem("Rejected", "", StatusCodes.Status429TooManyRequests);
     }
 
     public IResult TriggerHttpChallenge()
     {
         _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns, CancellationToken.None);
+
+        return Results.NoContent();
+    }
+
+    public IResult CancelCurrentChallenge()
+    {
+        _keymakerService.CancelCurrentChallenge();
 
         return Results.NoContent();
     }
@@ -39,7 +48,7 @@ public sealed class RequestHandler
 
         return Results.Ok(status);
     }
-    
+
     public async Task<IResult> GetCertificatesAsync()
     {
         var certs = await _keymakerService.GetPersistedCertificatesAsync();

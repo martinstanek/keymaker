@@ -14,12 +14,17 @@ public static class WebApplicationExtensions
     {
         var api = webApplication.MapGroup("/");
 
-        api.MapGet("/challenge/dns", (
+        api.MapDelete("/challenge", (
+                    [FromServices] RequestHandler handler)
+                => handler.CancelCurrentChallenge())
+            .Produces<NoContentResult>();
+
+        api.MapPut("/challenge/dns", (
                 [FromServices] RequestHandler handler)
             => handler.TriggerDnsChallengeAsync())
             .Produces<NoContentResult>();
 
-        api.MapGet("/challenge/http", (
+        api.MapPut("/challenge/http", (
                     [FromServices] RequestHandler handler)
                 => handler.TriggerHttpChallenge())
             .Produces<NoContentResult>();

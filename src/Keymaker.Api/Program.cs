@@ -7,6 +7,7 @@ using Keymaker.Service.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHandlers();
+builder.Services.ConfigureSerialization();
 builder.Services.AddKeymaker();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
