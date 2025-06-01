@@ -10,8 +10,6 @@ public sealed record ChallengeStatus
 
     public required DateTime Requested { get; init; }
 
-    public required DateTime ValidUntil { get; init; }
-
     public required CertificateRequestStatus Status { get; init; }
 
     public required CertificateRequestChallengeType Challenge { get; init; }
@@ -21,7 +19,6 @@ public sealed record ChallengeStatus
         PerformedChecks = 0,
         DnsRecordValue = string.Empty,
         Requested = DateTime.MinValue,
-        ValidUntil = DateTime.MinValue,
         Status = CertificateRequestStatus.NotRequested,
         Challenge = CertificateRequestChallengeType.Http
     };

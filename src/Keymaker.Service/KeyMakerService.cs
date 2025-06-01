@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Store;
+using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
 
@@ -16,6 +18,7 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly CertificateParameters _certificateParameters;
     private readonly ICertStoreService _storeService;
     private readonly IAcmeService _acmeService;
+    private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
 
     public KeyMakerService(
         IAcmeService acmeService,
@@ -31,25 +34,12 @@ public sealed class KeyMakerService : IKeymakerService
 
     public bool RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)
     {
-        switch (challengeType)
+        if (!CanProcessRequest())
         {
-            case CertificateRequestChallengeType.Dns:
-                Task.Factory.StartNew(
-                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _dnsServiceConfiguration, token),
-                    CancellationToken.None,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
-                break;
-            case CertificateRequestChallengeType.Http:
-                Task.Factory.StartNew(
-                    () => _acmeService.RequestCertificateViaHttpChallengeAsync(_certificateParameters, token),
-                    CancellationToken.None,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(challengeType), challengeType, null);
+            return false;
         }
+
+        StartChallenge(challengeType, token);
 
         return true;
     }
@@ -75,11 +65,50 @@ public sealed class KeyMakerService : IKeymakerService
 
     public ChallengeStatus GetCurrentRequestStatus()
     {
-        return ChallengeStatus.Empty;
+        return _challengeStatus;
     }
 
     public Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync()
     {
         return _storeService.GetCertificatesAsync();
+    }
+
+    private void StartChallenge(CertificateRequestChallengeType challengeType, CancellationToken token)
+    {
+        switch (challengeType)
+        {
+            case CertificateRequestChallengeType.Dns:
+                Task.Factory.StartNew(
+                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _dnsServiceConfiguration, token),
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+                break;
+            case CertificateRequestChallengeType.Http:
+                Task.Factory.StartNew(
+                    () => _acmeService.RequestCertificateViaHttpChallengeAsync(_certificateParameters, token),
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+                break;
+            default:
+                throw new NotSupportedException();
+        }
+
+        _challengeStatus = _challengeStatus with
+        {
+            Status = CertificateRequestStatus.Started,
+            Requested = DateTime.UtcNow
+        };
+    }
+
+    private bool CanProcessRequest()
+    {
+        var allowedStates = new[] {
+            CertificateRequestStatus.Failed,
+            CertificateRequestStatus.Success,
+            CertificateRequestStatus.TimeOut};
+
+        return allowedStates.Contains(_challengeStatus.Status);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
 
@@ -14,4 +15,16 @@ public interface IAcmeService
     Task RequestCertificateViaHttpChallengeAsync(
         CertificateParameters certificateParameters,
         CancellationToken cancellationToken);
+
+    event EventHandler DnsValueSet;
+
+    event EventHandler DnsValuePropagated;
+
+    event EventHandler HttpChallengeTriggered;
+
+    event EventHandler DnsChallengeTriggered;
+
+    event EventHandler Failed;
+
+    event EventHandler Succeeded;
 }

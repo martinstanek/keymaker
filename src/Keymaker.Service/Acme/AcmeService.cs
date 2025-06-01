@@ -215,4 +215,16 @@ public sealed class AcmeService : IAcmeService
 
         throw new InvalidOperationException("DNS not prepared");
     }
+
+    public event EventHandler DnsValueSet = (_, _) => { };
+
+    public event EventHandler DnsValuePropagated = (_, _) => { };
+
+    public event EventHandler HttpChallengeTriggered = (_, _) => { };
+
+    public event EventHandler DnsChallengeTriggered = (_, _) => { };
+
+    public event EventHandler Failed = (_, _) => { };
+
+    public event EventHandler Succeeded = (_, _) => { };
 }
