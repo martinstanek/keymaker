@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Store;
-using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
 

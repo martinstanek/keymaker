@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keymaker.Model", "src\Keyma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keymaker.Infra", "src\Keymaker.Infra\Keymaker.Infra.csproj", "{45AD22CC-58B9-4BB5-ACEE-F7C6D09ED503}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tst", "tst", "{133E760B-46EC-4E44-90CF-A41F3E3F9C60}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
