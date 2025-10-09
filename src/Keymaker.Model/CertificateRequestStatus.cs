@@ -9,5 +9,5 @@ public enum CertificateRequestStatus
     TimeOut,
     Success,
     Failed,
-    NotRequested
+    Idle
 }

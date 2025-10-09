@@ -19,7 +19,7 @@ public sealed record ChallengeStatus
         PerformedChecks = 0,
         DnsRecordValue = string.Empty,
         Requested = DateTime.MinValue,
-        Status = CertificateRequestStatus.NotRequested,
+        Status = CertificateRequestStatus.Idle,
         Challenge = CertificateRequestChallengeType.Http
     };
 }

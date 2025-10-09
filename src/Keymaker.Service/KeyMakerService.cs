@@ -103,10 +103,13 @@ public sealed class KeyMakerService : IKeymakerService
 
     private bool CanProcessRequest()
     {
-        var allowedStates = new[] {
+        var allowedStates = new[]
+        {
             CertificateRequestStatus.Failed,
             CertificateRequestStatus.Success,
-            CertificateRequestStatus.TimeOut};
+            CertificateRequestStatus.TimeOut,
+            CertificateRequestStatus.Idle
+        };
 
         return allowedStates.Contains(_challengeStatus.Status);
     }
