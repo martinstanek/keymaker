@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Keymaker.Api\Keymaker.Api.csproj" />
       <ProjectReference Include="..\..\src\Keymaker.Client\Keymaker.Client.csproj" />
       <ProjectReference Include="..\..\src\Keymaker.Service\Keymaker.Service.csproj" />
     </ItemGroup>

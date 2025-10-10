@@ -1,11 +1,12 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Client;
-using Keymaker.Service.Acme;
-using Keymaker.Service.Dns;
-using Keymaker.Service.Store;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Keymaker.Client;
+using Keymaker.Model;
+using Keymaker.Service.Dns;
+using Keymaker.Service.Store;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -22,6 +23,8 @@ public sealed class KeymakerApiTests
 
         await client.TriggerDnsChallengeAsync();
 
+        await context.WaitForStatus(client, CertificateRequestStatus.Success);
+
         var certs = await client.GetCertificatesAsync();
 
         certs.ShouldNotBeEmpty();
@@ -31,9 +34,23 @@ public sealed class KeymakerApiTests
     {
         internal Mock<ICertStoreService> CertStore { get; init; } = new();
 
-        internal Mock<IAcmeService> AcmeService { get; init; } = new();
-
         internal Mock<IDnsService> DnsService { get; init; } = new();
+
+        internal async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 10)
+        {
+            var span = TimeSpan.FromSeconds(timeSpanSeconds);
+            var token = new CancellationTokenSource(span).Token;
+
+            while (!token.IsCancellationRequested)
+            {
+                var challengeStatus = await client.GetChallengeStatusAsync();
+
+                if (challengeStatus.Status == status)
+                {
+                    return;
+                }
+            }
+        }
 
         internal IKeymakerClient GetClient()
         {
@@ -43,7 +60,6 @@ public sealed class KeymakerApiTests
                     builder.ConfigureServices(services =>
                     {
                         services.AddSingleton(CertStore.Object);
-                        services.AddSingleton(AcmeService.Object);
                         services.AddSingleton(DnsService.Object);
                     });
                 });

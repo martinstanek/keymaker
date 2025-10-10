@@ -18,3 +18,5 @@ app.UseSwaggerApiDoc("Keymaker API");
 app.UseKeymaker();
 app.UseCustomEndpoints();
 app.Run();
+
+public partial class Program;

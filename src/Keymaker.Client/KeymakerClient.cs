@@ -17,7 +17,14 @@ public sealed class KeymakerClient : IKeymakerClient
 
     public Task<ImmutableArray<CertificateInfo>> GetCertificatesAsync()
     {
-        return _httpClient.GetFromJsonAsync<ImmutableArray<CertificateInfo>>("certificates");
+        return _httpClient.GetFromJsonAsync<ImmutableArray<CertificateInfo>>("/certificates");
+    }
+
+    public async Task<ChallengeStatus> GetChallengeStatusAsync()
+    {
+        var status = await _httpClient.GetFromJsonAsync<ChallengeStatus>("/challenge/status");
+
+        return status ?? ChallengeStatus.Empty;
     }
 
     public Task CancelCurrentChallengeAsync()

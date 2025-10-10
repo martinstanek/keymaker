@@ -8,6 +8,8 @@ public interface IKeymakerClient
 {
     Task<ImmutableArray<CertificateInfo>> GetCertificatesAsync();
 
+    Task<ChallengeStatus> GetChallengeStatusAsync();
+
     Task CancelCurrentChallengeAsync();
 
     Task TriggerDnsChallengeAsync();
