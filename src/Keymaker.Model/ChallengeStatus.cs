@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace Keymaker.Model;
 
@@ -10,8 +11,10 @@ public sealed record ChallengeStatus
 
     public required DateTime Requested { get; init; }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required CertificateRequestStatus Status { get; init; }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required CertificateRequestChallengeType Challenge { get; init; }
 
     public static ChallengeStatus Empty => new()

@@ -6,11 +6,12 @@ using Microsoft.Extensions.Logging;
 using Keymaker.Model;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
-using Keymaker.Service.Extensions;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
 using Certes;
 using Certes.Acme;
+using Keymaker.Service.Acme.Certificates;
+using Keymaker.Service.Acme.Dns;
 
 namespace Keymaker.Service.Acme;
 
@@ -25,20 +26,26 @@ public sealed class AcmeService : IAcmeService
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
     private readonly ICertStoreService _certStoreService;
+    private readonly ICertProducer _certProducer;
     private readonly IDnsService _dnsService;
+    private readonly IDnsProvider _dnsProvider;
     private readonly ILogger<AcmeService> _logger;
 
     public AcmeService(
         IAcmeContextFactory acmeContextFactory,
         IAcmeCallback acmeCallback,
         ICertStoreService certStoreService,
+        ICertProducer certProducer,
         IDnsService dnsService,
+        IDnsProvider dnsProvider,
         ILogger<AcmeService> logger)
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;
         _certStoreService = certStoreService;
+        _certProducer = certProducer;
         _dnsService = dnsService;
+        _dnsProvider = dnsProvider;
         _logger = logger;
     }
 
@@ -156,16 +163,9 @@ public sealed class AcmeService : IAcmeService
     {
         _logger.LogDebug("Generating the certificate");
 
-        var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
-        var certInfo = certificateParameters.AsCsrInfo();
-        var cert = await order.Generate(certInfo, privateKey);
-        var pfxBuilder = cert.ToPfx(privateKey);
-        var pfx = pfxBuilder.Build(certificateParameters.CertificateName, certificateParameters.Password);
-        var pem = cert.ToPem(privateKey);
-        var pemKey = privateKey.ToPem();
-        var base64 = Convert.ToBase64String(pfx);
+        var cert = await _certProducer.BuildCertificateAsync(order, certificateParameters);
 
-        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, pem, pemKey, base64);
+        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, cert.Pem, cert.PemKey, cert.Base64);
     }
 
     private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)
@@ -188,8 +188,8 @@ public sealed class AcmeService : IAcmeService
         DnsServiceConfiguration dnsConfig,
         CancellationToken cancellationToken)
     {
-        var dnsChallenge = await authorize.Dns();
-        var dnsTxt = acme.AccountKey.DnsTxt(dnsChallenge.Token);
+        var dnsChallenge = await _dnsProvider.GetDnsChallengeAsync(authorize);
+        var dnsTxt = _dnsProvider.GetDnsTxtValue(dnsChallenge, acme);
         var i = 0;
 
         await _dnsService.AddTxtEntryAsync(dnsConfig.DnsChallengeSetDomain, dnsTxt);
