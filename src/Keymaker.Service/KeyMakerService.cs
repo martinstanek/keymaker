@@ -29,6 +29,9 @@ public sealed class KeyMakerService : IKeymakerService
         _storeService = storeService;
         _certificateParameters = certificateParameters;
         _dnsServiceConfiguration = dnsServiceConfiguration;
+
+        _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
+        _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
     }
 
     public bool RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)
@@ -98,6 +101,14 @@ public sealed class KeyMakerService : IKeymakerService
         {
             Status = CertificateRequestStatus.Started,
             Requested = DateTime.UtcNow
+        };
+    }
+
+    private void SetState(CertificateRequestStatus status)
+    {
+        _challengeStatus = _challengeStatus with
+        {
+            Status = status
         };
     }
 

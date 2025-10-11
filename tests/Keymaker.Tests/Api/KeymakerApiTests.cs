@@ -72,6 +72,8 @@ public sealed class KeymakerApiTests
                 {
                     return;
                 }
+
+                await Task.Delay(TimeSpan.FromSeconds(2), token);
             }
         }
 

@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Keymaker.Model;
-using Keymaker.Service.Acme.Callback;
-using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
+using Keymaker.Service.Acme.Dns;
+using Keymaker.Service.Acme.Callback;
+using Keymaker.Service.Acme.Factories;
+using Keymaker.Service.Acme.Certificates;
 using Certes;
 using Certes.Acme;
-using Keymaker.Service.Acme.Certificates;
-using Keymaker.Service.Acme.Dns;
 
 namespace Keymaker.Service.Acme;
 
@@ -57,11 +57,12 @@ public sealed class AcmeService : IAcmeService
 
         _logger.LogDebug($"Order negotiated {order.Location}");
 
+        DnsChallengeTriggered.Invoke(this, EventArgs.Empty);
+
         await PerformChallengeAsync(
             acme,
             order,
             isDnsChallenge: true,
-            certificateParameters,
             dnsConfig,
             cancellationToken);
 
@@ -80,7 +81,6 @@ public sealed class AcmeService : IAcmeService
             acme,
             order,
             isDnsChallenge: false,
-            certificateParameters,
             DnsServiceConfiguration.Empty,
             cancellationToken);
     }
@@ -111,13 +111,12 @@ public sealed class AcmeService : IAcmeService
         IAcmeContext acme,
         IOrderContext order,
         bool isDnsChallenge,
-        CertificateParameters certificateParameters,
         DnsServiceConfiguration dnsConfig,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
         var challenge = isDnsChallenge
-            ? await PrepareForDnsChallengeAsync(acme, authorize, certificateParameters, dnsConfig, cancellationToken)
+            ? await PrepareForDnsChallengeAsync(acme, authorize, dnsConfig, cancellationToken)
             : await PrepareForHttpChallengeAsync(authorize);
 
         var validatedChallenge = await challenge.Validate();
@@ -157,6 +156,8 @@ public sealed class AcmeService : IAcmeService
                 _logger.LogError(e, e.Message);
             }
         }
+
+        Failed.Invoke(this, EventArgs.Empty);
     }
 
     private async Task FinaliseOrderAsync(IOrderContext order, CertificateParameters certificateParameters)
@@ -166,6 +167,8 @@ public sealed class AcmeService : IAcmeService
         var cert = await _certProducer.BuildCertificateAsync(order, certificateParameters);
 
         await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, cert.Pem, cert.PemKey, cert.Base64);
+
+        Succeeded.Invoke(this, EventArgs.Empty);
     }
 
     private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)
@@ -184,7 +187,6 @@ public sealed class AcmeService : IAcmeService
     private async Task<IChallengeContext> PrepareForDnsChallengeAsync(
         IAcmeContext acme,
         IAuthorizationContext authorize,
-        CertificateParameters parameters,
         DnsServiceConfiguration dnsConfig,
         CancellationToken cancellationToken)
     {
@@ -193,6 +195,8 @@ public sealed class AcmeService : IAcmeService
         var i = 0;
 
         await _dnsService.AddTxtEntryAsync(dnsConfig.DnsChallengeSetDomain, dnsTxt);
+
+        DnsValueSet.Invoke(this, EventArgs.Empty);
 
         while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsPropagationSeconds)
         {
@@ -209,6 +213,8 @@ public sealed class AcmeService : IAcmeService
 
             if (preparedKey.Contains(dnsTxt))
             {
+                DnsValuePropagated.Invoke(this, EventArgs.Empty);
+
                 return dnsChallenge;
             }
         }
