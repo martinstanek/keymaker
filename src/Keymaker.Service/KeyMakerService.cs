@@ -32,6 +32,7 @@ public sealed class KeyMakerService : IKeymakerService
 
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
+        _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
     }
 
     public bool RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token)

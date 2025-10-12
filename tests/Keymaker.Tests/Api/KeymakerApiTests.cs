@@ -12,6 +12,7 @@ using Keymaker.Model;
 using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Factories;
+using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
 using Moq;
@@ -29,7 +30,22 @@ public sealed class KeymakerApiTests
         var client = context.GetClient();
 
         await client.TriggerDnsChallengeAsync();
+        await context.WaitForStatus(client, CertificateRequestStatus.Success);
 
+        var certs = await client.GetCertificatesAsync();
+
+        certs.ShouldNotBeEmpty();
+    }
+
+    [Fact]
+    public async Task TriggerHttpChallenge_HappyPath_CertificateObtained()
+    {
+        var context = new KeymakerApiTestsContext();
+        var client = context.GetClient();
+
+        await client.TriggerHttpChallengeAsync();
+        await context.WaitForStatus(client, CertificateRequestStatus.WaitingForHttpVerification);
+        await client.ConfirmHttpChallengeAsync("test");
         await context.WaitForStatus(client, CertificateRequestStatus.Success);
 
         var certs = await client.GetCertificatesAsync();
@@ -54,6 +70,8 @@ public sealed class KeymakerApiTests
         internal Mock<IKey> AcmeAccountKey { get; init; } = new();
 
         internal Mock<IDnsProvider> DnsProvider { get; init; } = new();
+
+        internal Mock<IHttpProvider> HttpProvider { get; init; } = new();
 
         internal Mock<IChallengeContext> AcmeChallengeContext { get; init; } = new();
 
@@ -81,7 +99,7 @@ public sealed class KeymakerApiTests
         {
             var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([AcmeAuthContext.Object]);
 
-            var cert = new Certificate()
+            var cert = new Certificate
             {
                 PemKey = "PemKey",
                 Pem = "Pem",
@@ -104,11 +122,14 @@ public sealed class KeymakerApiTests
             AcmeContext.Setup(s => s.AccountKey).Returns(AcmeAccountKey.Object);
             AcmeOrderContext.Setup(s => s.Authorizations()).Returns(authContext);
             AcmeChallengeContext.Setup(s => s.Validate()).ReturnsAsync(new Challenge { Type = "dns"});
+            AcmeChallengeContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
             DnsProvider.Setup(s => s.GetDnsTxtValue(It.IsAny<IChallengeContext>(), It.IsAny<IAcmeContext>())).Returns("key");
             DnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             DnsService.Setup(s => s.GetTxtEntryAsync(It.IsAny<string>())).ReturnsAsync("key");
             CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateParameters>())).ReturnsAsync(cert);
             CertStore.Setup(s => s.GetCertificatesAsync()).ReturnsAsync([certInfo]);
+            HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
+            HttpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
 
             var dnsConfig = GetTestDnsConfiguration();
             var crtConfig = GetTestCertificateParams();
@@ -122,6 +143,7 @@ public sealed class KeymakerApiTests
                         services.AddSingleton(DnsService.Object);
                         services.AddSingleton(AcmeContextFactory.Object);
                         services.AddSingleton(DnsProvider.Object);
+                        services.AddSingleton(HttpProvider.Object);
                         services.AddSingleton(dnsConfig);
                         services.AddSingleton(crtConfig);
                     });

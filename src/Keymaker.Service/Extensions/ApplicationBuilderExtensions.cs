@@ -30,7 +30,9 @@ public static class ApplicationBuilderExtensions
                     callBack.Hit = DateTime.Now;
                     context.Response.ContentType = ResponseContentType;
 
-                    await context.Response.WriteAsync($"{path.Substring(1)}.{callBack.Thumbprint}");
+                    var response = $"{path.Substring(1)}.{callBack.Thumbprint}";
+
+                    await context.Response.WriteAsync(response);
                 }
             }));
 

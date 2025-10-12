@@ -10,6 +10,8 @@ public interface IKeymakerClient
 
     Task<ChallengeStatus> GetChallengeStatusAsync();
 
+    Task<string> ConfirmHttpChallengeAsync(string challenge);
+
     Task CancelCurrentChallengeAsync();
 
     Task TriggerDnsChallengeAsync();

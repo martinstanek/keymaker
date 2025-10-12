@@ -41,4 +41,9 @@ public sealed class KeymakerClient : IKeymakerClient
     {
         return _httpClient.PutAsync("/challenge/http", new StringContent(string.Empty));
     }
+
+    public Task<string> ConfirmHttpChallengeAsync(string challenge)
+    {
+        return _httpClient.GetStringAsync($"/.well-known/acme-challenge/{challenge}");
+    }
 }

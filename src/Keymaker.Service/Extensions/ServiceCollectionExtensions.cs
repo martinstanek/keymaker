@@ -4,6 +4,7 @@ using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Factories;
+using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton(certificateParams)
             .AddSingleton<ICertStoreService, CertStoreService>()
             .AddSingleton<ICertProducer, CertProducer>()
+            .AddSingleton<IHttpProvider, HttpProvider>()
             .AddSingleton<IDnsProvider, DnsProvider>()
             .AddSingleton<IDnsService, DnsService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()

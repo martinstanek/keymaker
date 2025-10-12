@@ -12,6 +12,7 @@ using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Certificates;
 using Certes;
 using Certes.Acme;
+using Keymaker.Service.Acme.Http;
 
 namespace Keymaker.Service.Acme;
 
@@ -29,6 +30,7 @@ public sealed class AcmeService : IAcmeService
     private readonly ICertProducer _certProducer;
     private readonly IDnsService _dnsService;
     private readonly IDnsProvider _dnsProvider;
+    private readonly IHttpProvider _httpProvider;
     private readonly ILogger<AcmeService> _logger;
 
     public AcmeService(
@@ -38,6 +40,7 @@ public sealed class AcmeService : IAcmeService
         ICertProducer certProducer,
         IDnsService dnsService,
         IDnsProvider dnsProvider,
+        IHttpProvider httpProvider,
         ILogger<AcmeService> logger)
     {
         _acmeContextFactory = acmeContextFactory;
@@ -46,6 +49,7 @@ public sealed class AcmeService : IAcmeService
         _certProducer = certProducer;
         _dnsService = dnsService;
         _dnsProvider = dnsProvider;
+        _httpProvider = httpProvider;
         _logger = logger;
     }
 
@@ -83,6 +87,12 @@ public sealed class AcmeService : IAcmeService
             isDnsChallenge: false,
             DnsServiceConfiguration.Empty,
             cancellationToken);
+
+        HttpChallengeTriggered.Invoke(this, EventArgs.Empty);
+
+        await WaitForHttpCallbackAsync(cancellationToken);
+
+        await FinaliseOrderAsync(order, certificateParameters);
     }
 
     public async Task GetCertificateAsync(CertificateParameters certificateParameters, bool isWildCard, uint waitForResponseSeconds, CancellationToken cancellationToken)
@@ -173,8 +183,8 @@ public sealed class AcmeService : IAcmeService
 
     private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)
     {
-        var httpChallenge = await authorize.Http();
-        var keyAuthorize = httpChallenge.KeyAuthz;
+        var httpChallenge = await _httpProvider.GetHttpChallenge(authorize);
+        var keyAuthorize = _httpProvider.GetHttpAuthz(httpChallenge);
         var str = keyAuthorize.Split('.');
 
         _acmeCallback.Token = str[0];

@@ -30,7 +30,7 @@ public sealed class RequestHandler
 
     public IResult TriggerHttpChallenge()
     {
-        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns, CancellationToken.None);
+        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Http, CancellationToken.None);
 
         return Results.NoContent();
     }
