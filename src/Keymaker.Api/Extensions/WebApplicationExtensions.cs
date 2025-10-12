@@ -14,36 +14,27 @@ public static class WebApplicationExtensions
     {
         var api = webApplication.MapGroup("/");
 
-        api.MapDelete("/challenge", (
-                    [FromServices] RequestHandler handler)
-                => handler.CancelCurrentChallenge())
-            .Produces<NoContentResult>();
+        api.MapGet("/", () => "keymaker")
+           .Produces<string>(contentType: "test/plain");
 
-        api.MapPut("/challenge/dns", (
-                [FromServices] RequestHandler handler)
-            => handler.TriggerDnsChallengeAsync())
-            .Produces<NoContentResult>();
+        api.MapDelete("/challenge", ([FromServices] RequestHandler handler) => handler.CancelCurrentChallenge())
+           .Produces<NoContentResult>();
 
-        api.MapPut("/challenge/http", (
-                    [FromServices] RequestHandler handler)
-                => handler.TriggerHttpChallenge())
-            .Produces<NoContentResult>();
+        api.MapPut("/challenge/dns", ( [FromServices] RequestHandler handler) => handler.TriggerDnsChallengeAsync())
+           .Produces<NoContentResult>();
 
-        api.MapGet("/challenge/status", (
-                    [FromServices] RequestHandler handler)
-                => handler.GetChallengeStatus())
-            .Produces<ChallengeStatus>();
+        api.MapPut("/challenge/http", ( [FromServices] RequestHandler handler) => handler.TriggerHttpChallenge())
+           .Produces<NoContentResult>();
 
-        api.MapGet("/certificates", async (
-                    [FromServices] RequestHandler handler)
-                => await handler.GetCertificatesAsync())
-            .Produces<ImmutableArray<CertificateInfo>>();
+        api.MapGet("/challenge/status", ( [FromServices] RequestHandler handler) => handler.GetChallengeStatus())
+           .Produces<ChallengeStatus>();
 
-        api.MapGet("/dns/txt", async (
-                    [FromServices] RequestHandler handler,
-                    [FromQuery] [Required] string domain)
-                => await handler.GetDnsTxtEntryAsync(domain))
-            .Produces<string>(contentType: "test/plain");
+        api.MapGet("/certificates", async ([FromServices] RequestHandler handler) => await handler.GetCertificatesAsync())
+           .Produces<ImmutableArray<CertificateInfo>>();
+
+        api.MapGet("/dns/txt", async ( [FromServices] RequestHandler handler, [FromQuery] [Required] string domain)
+              => await handler.GetDnsTxtEntryAsync(domain))
+           .Produces<string>(contentType: "test/plain");
 
         return webApplication;
     }
