@@ -53,7 +53,7 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
-    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CloudFlareDnsServiceConfiguration cloudFlareDnsConfig, CancellationToken cancellationToken)
+    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters,CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
@@ -67,7 +67,6 @@ public sealed class AcmeService : IAcmeService
             acme,
             order,
             isDnsChallenge: true,
-            cloudFlareDnsConfig,
             cancellationToken);
 
         await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
@@ -85,7 +84,6 @@ public sealed class AcmeService : IAcmeService
             acme,
             order,
             isDnsChallenge: false,
-            CloudFlareDnsServiceConfiguration.Empty,
             cancellationToken);
 
         HttpChallengeTriggered.Invoke(this, EventArgs.Empty);
@@ -93,17 +91,6 @@ public sealed class AcmeService : IAcmeService
         await WaitForHttpCallbackAsync(cancellationToken);
 
         await FinaliseOrderAsync(order, certificateParameters);
-    }
-
-    public async Task GetCertificateAsync(CertificateParameters certificateParameters, bool isWildCard, uint waitForResponseSeconds, CancellationToken cancellationToken)
-    {
-        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
-
-        ArgumentOutOfRangeException.ThrowIfZero(waitForResponseSeconds);
-
-        var (acme, order) = await PlaceOrderAsync(certificateParameters);
-
-        _logger.LogDebug($"Order negotiated {order.Location}");
     }
 
     private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
@@ -121,12 +108,11 @@ public sealed class AcmeService : IAcmeService
         IAcmeContext acme,
         IOrderContext order,
         bool isDnsChallenge,
-        CloudFlareDnsServiceConfiguration cloudFlareDnsConfig,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
         var challenge = isDnsChallenge
-            ? await PrepareForDnsChallengeAsync(acme, authorize, cloudFlareDnsConfig, cancellationToken)
+            ? await PrepareForDnsChallengeAsync(acme, authorize, cancellationToken)
             : await PrepareForHttpChallengeAsync(authorize);
 
         var validatedChallenge = await challenge.Validate();
@@ -197,14 +183,13 @@ public sealed class AcmeService : IAcmeService
     private async Task<IChallengeContext> PrepareForDnsChallengeAsync(
         IAcmeContext acme,
         IAuthorizationContext authorize,
-        CloudFlareDnsServiceConfiguration cloudFlareDnsConfig,
         CancellationToken cancellationToken)
     {
         var dnsChallenge = await _dnsProvider.GetDnsChallengeAsync(authorize);
         var dnsTxt = _dnsProvider.GetDnsTxtValue(dnsChallenge, acme);
         var i = 0;
 
-        await _dnsService.AddTxtEntryAsync(cloudFlareDnsConfig.DnsChallengeSetDomain, dnsTxt);
+        await _dnsService.AddTxtEntryAsync(dnsTxt);
 
         DnsValueSet.Invoke(this, EventArgs.Empty);
 
@@ -217,9 +202,9 @@ public sealed class AcmeService : IAcmeService
                 continue;
             }
 
-            var preparedKey = await _dnsService.GetTxtEntryAsync(cloudFlareDnsConfig.DnsChallengeCheckDomain);
+            var preparedKey = await _dnsService.GetTxtEntryAsync();
 
-            _logger.LogDebug($"Waiting for the DNS propagation at {cloudFlareDnsConfig.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
+            _logger.LogDebug($"Waiting for the DNS propagation. Expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {
@@ -229,7 +214,7 @@ public sealed class AcmeService : IAcmeService
             }
         }
 
-        throw new InvalidOperationException("DNS not prepared");
+        throw new InvalidOperationException("DNS entry not prepared");
     }
 
     public event EventHandler DnsValueSet = (_, _) => { };

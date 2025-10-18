@@ -15,6 +15,7 @@ public sealed class CloudFlareDnsService : IDnsService
     private const int RecordTimeToLiveSeconds = 300;
     private const string RecordComment = "Added by the Keymaker.";
 
+    private readonly CloudFlareDnsServiceConfiguration _configuration;
     private readonly ILogger<CloudFlareDnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
     private readonly Lazy<LookupClient> _lookupClient;
@@ -27,22 +28,22 @@ public sealed class CloudFlareDnsService : IDnsService
             xAuthKey: configuration.Key,
             xAuthEmail: configuration.Email,
             zoneIdentifier: configuration.Zone));
+        _configuration = configuration;
         _logger = logger;
     }
 
-    public async Task AddTxtEntryAsync(string domain, string value)
+    public async Task AddTxtEntryAsync(string value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(domain);
         ArgumentException.ThrowIfNullOrEmpty(value);
 
         await _semaphore.WaitAsync();
 
-        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {domain}");
+        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_configuration.DnsChallengeSetDomain}");
 
         try
         {
             await _dnsClient.Value.Record.Create(
-                name: domain,
+                name: _configuration.DnsChallengeSetDomain,
                 content: value,
                 proxied: false,
                 RecordType.TXT,
@@ -61,15 +62,13 @@ public sealed class CloudFlareDnsService : IDnsService
         }
     }
 
-    public async Task<string> GetTxtEntryAsync(string domain)
+    public async Task<string> GetTxtEntryAsync()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
-
         await _semaphore.WaitAsync();
 
         try
         {
-            var result = await _lookupClient.Value.QueryAsync(domain, QueryType.TXT);
+            var result = await _lookupClient.Value.QueryAsync(_configuration.DnsChallengeCheckDomain, QueryType.TXT);
 
             return result.Answers
                 .TxtRecords()

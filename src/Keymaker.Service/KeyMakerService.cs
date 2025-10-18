@@ -13,7 +13,6 @@ namespace Keymaker.Service;
 
 public sealed class KeyMakerService : IKeymakerService
 {
-    private readonly CloudFlareDnsServiceConfiguration _cloudFlareDnsServiceConfiguration;
     private readonly CertificateParameters _certificateParameters;
     private readonly ICertStoreService _storeService;
     private readonly IAcmeService _acmeService;
@@ -22,13 +21,11 @@ public sealed class KeyMakerService : IKeymakerService
     public KeyMakerService(
         IAcmeService acmeService,
         ICertStoreService storeService,
-        CertificateParameters certificateParameters,
-        CloudFlareDnsServiceConfiguration cloudFlareDnsServiceConfiguration)
+        CertificateParameters certificateParameters)
     {
         _acmeService = acmeService;
         _storeService = storeService;
         _certificateParameters = certificateParameters;
-        _cloudFlareDnsServiceConfiguration = cloudFlareDnsServiceConfiguration;
 
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
@@ -49,23 +46,6 @@ public sealed class KeyMakerService : IKeymakerService
 
     public void CancelCurrentChallenge() { }
 
-    public ChallengeParameters GetChallengeParameters()
-    {
-        return new ChallengeParameters
-        {
-            CertificateName = _certificateParameters.CertificateName,
-            Contact = _certificateParameters.Contact,
-            CountryName = _certificateParameters.CountryName,
-            Domain = _certificateParameters.Domain,
-            Locality = _certificateParameters.Locality,
-            Organization = _certificateParameters.Organization,
-            OrganizationUnit = _certificateParameters.OrganizationUnit,
-            State = _certificateParameters.State,
-            DnsChallengeCheckDomain = _cloudFlareDnsServiceConfiguration.DnsChallengeCheckDomain,
-            DnsChallengeSetDomain = _cloudFlareDnsServiceConfiguration.DnsChallengeSetDomain
-        };
-    }
-
     public ChallengeStatus GetCurrentRequestStatus()
     {
         return _challengeStatus;
@@ -82,7 +62,7 @@ public sealed class KeyMakerService : IKeymakerService
         {
             case CertificateRequestChallengeType.Dns:
                 Task.Factory.StartNew(
-                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _cloudFlareDnsServiceConfiguration, token),
+                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, token),
                     CancellationToken.None,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default);

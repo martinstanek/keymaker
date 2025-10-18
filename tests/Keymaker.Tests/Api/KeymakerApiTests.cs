@@ -125,7 +125,7 @@ public sealed class KeymakerApiTests
             AcmeChallengeContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
             DnsProvider.Setup(s => s.GetDnsTxtValue(It.IsAny<IChallengeContext>(), It.IsAny<IAcmeContext>())).Returns("key");
             DnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
-            DnsService.Setup(s => s.GetTxtEntryAsync(It.IsAny<string>())).ReturnsAsync("key");
+            DnsService.Setup(s => s.GetTxtEntryAsync()).ReturnsAsync("key");
             CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateParameters>())).ReturnsAsync(cert);
             CertStore.Setup(s => s.GetCertificatesAsync()).ReturnsAsync([certInfo]);
             HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);

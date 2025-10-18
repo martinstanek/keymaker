@@ -1,10 +1,9 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Keymaker.Model;
 using Keymaker.Service;
 using Keymaker.Service.Dns;
-using Microsoft.AspNetCore.Http;
 
 namespace Keymaker.Api.Handlers;
 
@@ -56,11 +55,9 @@ public sealed class RequestHandler
         return Results.Ok(certs);
     }
 
-    public async Task<IResult> GetDnsTxtEntryAsync(string domain)
+    public async Task<IResult> GetDnsTxtEntryAsync()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
-
-        var value = await _dnsService.GetTxtEntryAsync(domain);
+        var value = await _dnsService.GetTxtEntryAsync();
 
         return Results.Ok(value);
     }

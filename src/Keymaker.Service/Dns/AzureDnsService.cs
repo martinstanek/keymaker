@@ -14,16 +14,17 @@ public sealed class AzureDnsService : IDnsService
 {
     private const int TtlSeconds = 300;
 
+    private readonly AzureDnsServiceConfiguration _configuration;
     private readonly Lazy<DnsTxtRecordCollection> _dnsRecords;
 
     public AzureDnsService(AzureDnsServiceConfiguration configuration)
     {
+        _configuration = configuration;
         _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords(configuration));
     }
 
-    public async Task AddTxtEntryAsync(string domain, string value)
+    public async Task AddTxtEntryAsync(string value)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
 
         var newData = new DnsTxtRecordData
@@ -36,14 +37,12 @@ public sealed class AzureDnsService : IDnsService
             }
         };
 
-        await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, domain, newData);
+        await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _configuration.SetDomain, newData);
     }
 
-    public async Task<string> GetTxtEntryAsync(string domain)
+    public async Task<string> GetTxtEntryAsync()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
-
-        var record = await _dnsRecords.Value.GetAsync(domain);
+        var record = await _dnsRecords.Value.GetAsync(_configuration.CheckDomain);
         var value = record.HasValue
             ? record.Value.Data.DnsTxtRecords.FirstOrDefault()?.Values.FirstOrDefault() ?? string.Empty
             : string.Empty;

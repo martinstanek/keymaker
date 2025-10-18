@@ -11,8 +11,6 @@ public interface IKeymakerService
 
     void CancelCurrentChallenge();
 
-    ChallengeParameters GetChallengeParameters();
-
     ChallengeStatus GetCurrentRequestStatus();
 
     Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync();

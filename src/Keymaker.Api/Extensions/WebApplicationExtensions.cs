@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,8 +31,8 @@ public static class WebApplicationExtensions
         api.MapGet("/certificates", async ([FromServices] RequestHandler handler) => await handler.GetCertificatesAsync())
            .Produces<ImmutableArray<CertificateInfo>>();
 
-        api.MapGet("/dns/txt", async ( [FromServices] RequestHandler handler, [FromQuery] [Required] string domain)
-              => await handler.GetDnsTxtEntryAsync(domain))
+        api.MapGet("/dns/txt", async ( [FromServices] RequestHandler handler)
+              => await handler.GetDnsTxtEntryAsync())
            .Produces<string>(contentType: "test/plain");
 
         return webApplication;

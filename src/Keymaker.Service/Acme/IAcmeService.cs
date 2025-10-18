@@ -9,7 +9,6 @@ public interface IAcmeService
 {
     Task RequestCertificateViaDnsChallengeAsync(
         CertificateParameters certificateParameters,
-        CloudFlareDnsServiceConfiguration cloudFlareDnsConfig,
         CancellationToken cancellationToken);
 
     Task RequestCertificateViaHttpChallengeAsync(
