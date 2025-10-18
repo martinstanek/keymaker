@@ -154,9 +154,9 @@ public sealed class KeymakerApiTests
             return new KeymakerClient(httpClient);
         }
 
-        internal DnsServiceConfiguration GetTestDnsConfiguration()
+        internal CloudFlareDnsServiceConfiguration GetTestDnsConfiguration()
         {
-            return new DnsServiceConfiguration
+            return new CloudFlareDnsServiceConfiguration
             {
                 DnsChallengeCheckDomain = "dns.challenge.check.domain.com",
                 DnsChallengeSetDomain = "dns.challenge.set.domain.com",

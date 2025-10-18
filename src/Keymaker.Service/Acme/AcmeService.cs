@@ -53,7 +53,7 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
-    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, DnsServiceConfiguration dnsConfig, CancellationToken cancellationToken)
+    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CloudFlareDnsServiceConfiguration cloudFlareDnsConfig, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
@@ -67,7 +67,7 @@ public sealed class AcmeService : IAcmeService
             acme,
             order,
             isDnsChallenge: true,
-            dnsConfig,
+            cloudFlareDnsConfig,
             cancellationToken);
 
         await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
@@ -85,7 +85,7 @@ public sealed class AcmeService : IAcmeService
             acme,
             order,
             isDnsChallenge: false,
-            DnsServiceConfiguration.Empty,
+            CloudFlareDnsServiceConfiguration.Empty,
             cancellationToken);
 
         HttpChallengeTriggered.Invoke(this, EventArgs.Empty);
@@ -121,12 +121,12 @@ public sealed class AcmeService : IAcmeService
         IAcmeContext acme,
         IOrderContext order,
         bool isDnsChallenge,
-        DnsServiceConfiguration dnsConfig,
+        CloudFlareDnsServiceConfiguration cloudFlareDnsConfig,
         CancellationToken cancellationToken)
     {
         var authorize = (await order.Authorizations()).First();
         var challenge = isDnsChallenge
-            ? await PrepareForDnsChallengeAsync(acme, authorize, dnsConfig, cancellationToken)
+            ? await PrepareForDnsChallengeAsync(acme, authorize, cloudFlareDnsConfig, cancellationToken)
             : await PrepareForHttpChallengeAsync(authorize);
 
         var validatedChallenge = await challenge.Validate();
@@ -197,14 +197,14 @@ public sealed class AcmeService : IAcmeService
     private async Task<IChallengeContext> PrepareForDnsChallengeAsync(
         IAcmeContext acme,
         IAuthorizationContext authorize,
-        DnsServiceConfiguration dnsConfig,
+        CloudFlareDnsServiceConfiguration cloudFlareDnsConfig,
         CancellationToken cancellationToken)
     {
         var dnsChallenge = await _dnsProvider.GetDnsChallengeAsync(authorize);
         var dnsTxt = _dnsProvider.GetDnsTxtValue(dnsChallenge, acme);
         var i = 0;
 
-        await _dnsService.AddTxtEntryAsync(dnsConfig.DnsChallengeSetDomain, dnsTxt);
+        await _dnsService.AddTxtEntryAsync(cloudFlareDnsConfig.DnsChallengeSetDomain, dnsTxt);
 
         DnsValueSet.Invoke(this, EventArgs.Empty);
 
@@ -217,9 +217,9 @@ public sealed class AcmeService : IAcmeService
                 continue;
             }
 
-            var preparedKey = await _dnsService.GetTxtEntryAsync(dnsConfig.DnsChallengeCheckDomain);
+            var preparedKey = await _dnsService.GetTxtEntryAsync(cloudFlareDnsConfig.DnsChallengeCheckDomain);
 
-            _logger.LogDebug($"Waiting for the DNS propagation at {dnsConfig.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
+            _logger.LogDebug($"Waiting for the DNS propagation at {cloudFlareDnsConfig.DnsChallengeCheckDomain}, expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {

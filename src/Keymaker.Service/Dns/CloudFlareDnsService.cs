@@ -10,17 +10,17 @@ using Keymaker.Model;
 
 namespace Keymaker.Service.Dns;
 
-public sealed class DnsService : IDnsService
+public sealed class CloudFlareDnsService : IDnsService
 {
     private const int RecordTimeToLiveSeconds = 300;
     private const string RecordComment = "Added by the Keymaker.";
 
-    private readonly ILogger<DnsService> _logger;
+    private readonly ILogger<CloudFlareDnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
     private readonly Lazy<LookupClient> _lookupClient;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public DnsService(DnsServiceConfiguration configuration, ILogger<DnsService> logger)
+    public CloudFlareDnsService(CloudFlareDnsServiceConfiguration configuration, ILogger<CloudFlareDnsService> logger)
     {
         _lookupClient = new Lazy<LookupClient>(() => new LookupClient());
         _dnsClient = new Lazy<CloudFlareDnsClient>(() => new CloudFlareDnsClient(

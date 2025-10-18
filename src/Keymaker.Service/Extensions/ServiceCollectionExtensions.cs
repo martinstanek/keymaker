@@ -16,16 +16,20 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddKeymaker(this IServiceCollection services)
     {
         var certificateParams = EnvironmentReader.GetCertificateParametersFromEnvironment();
-        var dnsServiceConfig = EnvironmentReader.GetDnsServiceConfigurationFromEnvironment();
+        var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
+        var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
+        var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
 
         return services
-            .AddSingleton(dnsServiceConfig)
+            .AddSingleton(keyMakerConfig)
             .AddSingleton(certificateParams)
+            .AddSingleton(cloudFlareDnsServiceConfig)
+            .AddSingleton(azureDnsServiceConfig)
             .AddSingleton<ICertStoreService, CertStoreService>()
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()
             .AddSingleton<IDnsProvider, DnsProvider>()
-            .AddSingleton<IDnsService, DnsService>()
+            .AddSingleton<IDnsService, CloudFlareDnsService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
             .AddSingleton<IAcmeService, AcmeService>()

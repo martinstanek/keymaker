@@ -1,6 +1,6 @@
 namespace Keymaker.Model;
 
-public sealed record DnsServiceConfiguration
+public sealed record CloudFlareDnsServiceConfiguration
 {
     public required string Key { get; init; } = string.Empty;
 
@@ -12,7 +12,7 @@ public sealed record DnsServiceConfiguration
 
     public required string DnsChallengeCheckDomain { get; init; } = string.Empty;
 
-    public static DnsServiceConfiguration Empty => new()
+    public static CloudFlareDnsServiceConfiguration Empty => new()
     {
         Zone = string.Empty,
         Email = string.Empty,

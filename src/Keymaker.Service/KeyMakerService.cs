@@ -13,7 +13,7 @@ namespace Keymaker.Service;
 
 public sealed class KeyMakerService : IKeymakerService
 {
-    private readonly DnsServiceConfiguration _dnsServiceConfiguration;
+    private readonly CloudFlareDnsServiceConfiguration _cloudFlareDnsServiceConfiguration;
     private readonly CertificateParameters _certificateParameters;
     private readonly ICertStoreService _storeService;
     private readonly IAcmeService _acmeService;
@@ -23,12 +23,12 @@ public sealed class KeyMakerService : IKeymakerService
         IAcmeService acmeService,
         ICertStoreService storeService,
         CertificateParameters certificateParameters,
-        DnsServiceConfiguration dnsServiceConfiguration)
+        CloudFlareDnsServiceConfiguration cloudFlareDnsServiceConfiguration)
     {
         _acmeService = acmeService;
         _storeService = storeService;
         _certificateParameters = certificateParameters;
-        _dnsServiceConfiguration = dnsServiceConfiguration;
+        _cloudFlareDnsServiceConfiguration = cloudFlareDnsServiceConfiguration;
 
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
@@ -61,8 +61,8 @@ public sealed class KeyMakerService : IKeymakerService
             Organization = _certificateParameters.Organization,
             OrganizationUnit = _certificateParameters.OrganizationUnit,
             State = _certificateParameters.State,
-            DnsChallengeCheckDomain = _dnsServiceConfiguration.DnsChallengeCheckDomain,
-            DnsChallengeSetDomain = _dnsServiceConfiguration.DnsChallengeSetDomain
+            DnsChallengeCheckDomain = _cloudFlareDnsServiceConfiguration.DnsChallengeCheckDomain,
+            DnsChallengeSetDomain = _cloudFlareDnsServiceConfiguration.DnsChallengeSetDomain
         };
     }
 
@@ -82,7 +82,7 @@ public sealed class KeyMakerService : IKeymakerService
         {
             case CertificateRequestChallengeType.Dns:
                 Task.Factory.StartNew(
-                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _dnsServiceConfiguration, token),
+                    () => _acmeService.RequestCertificateViaDnsChallengeAsync(_certificateParameters, _cloudFlareDnsServiceConfiguration, token),
                     CancellationToken.None,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default);
