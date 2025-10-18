@@ -32,14 +32,9 @@ public sealed class KeymakerClient : IKeymakerClient
         return _httpClient.DeleteAsync("/challenge");
     }
 
-    public Task TriggerDnsChallengeAsync()
+    public Task TriggerChallengeAsync()
     {
-        return _httpClient.PutAsync("/challenge/dns", new StringContent(string.Empty));
-    }
-
-    public Task TriggerHttpChallengeAsync()
-    {
-        return _httpClient.PutAsync("/challenge/http", new StringContent(string.Empty));
+        return _httpClient.PutAsync("/challenge", new StringContent(string.Empty));
     }
 
     public Task<string> ConfirmHttpChallengeAsync(string challenge)

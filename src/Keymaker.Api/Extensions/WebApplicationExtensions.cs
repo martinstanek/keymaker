@@ -19,10 +19,7 @@ public static class WebApplicationExtensions
         api.MapDelete("/challenge", ([FromServices] RequestHandler handler) => handler.CancelCurrentChallenge())
            .Produces<NoContentResult>();
 
-        api.MapPut("/challenge/dns", ( [FromServices] RequestHandler handler) => handler.TriggerDnsChallengeAsync())
-           .Produces<NoContentResult>();
-
-        api.MapPut("/challenge/http", ( [FromServices] RequestHandler handler) => handler.TriggerHttpChallenge())
+        api.MapPut("/challenge", ( [FromServices] RequestHandler handler) => handler.TriggerChallengeAsync())
            .Produces<NoContentResult>();
 
         api.MapGet("/challenge/status", ( [FromServices] RequestHandler handler) => handler.GetChallengeStatus())

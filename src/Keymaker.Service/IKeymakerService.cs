@@ -7,7 +7,7 @@ namespace Keymaker.Service;
 
 public interface IKeymakerService
 {
-    bool RequestCertificate(CertificateRequestChallengeType challengeType, CancellationToken token);
+    bool RequestCertificate(CancellationToken token);
 
     void CancelCurrentChallenge();
 

@@ -14,7 +14,5 @@ public interface IKeymakerClient
 
     Task CancelCurrentChallengeAsync();
 
-    Task TriggerDnsChallengeAsync();
-
-    Task TriggerHttpChallengeAsync();
+    Task TriggerChallengeAsync();
 }

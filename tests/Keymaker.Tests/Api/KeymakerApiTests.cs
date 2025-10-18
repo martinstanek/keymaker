@@ -1,20 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Certes;
-using Certes.Acme;
-using Certes.Acme.Resource;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Keymaker.Client;
 using Keymaker.Model;
+using Keymaker.Client;
 using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
+using Certes;
+using Certes.Acme;
+using Certes.Acme.Resource;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -27,9 +27,9 @@ public sealed class KeymakerApiTests
     public async Task TriggerDnsChallenge_HappyPath_CertificateObtained()
     {
         var context = new KeymakerApiTestsContext();
-        var client = context.GetClient();
+        var client = context.GetClient(challengeMode: ChallengeMode.Dns);
 
-        await client.TriggerDnsChallengeAsync();
+        await client.TriggerChallengeAsync();
         await context.WaitForStatus(client, CertificateRequestStatus.Success);
 
         var certs = await client.GetCertificatesAsync();
@@ -41,9 +41,9 @@ public sealed class KeymakerApiTests
     public async Task TriggerHttpChallenge_HappyPath_CertificateObtained()
     {
         var context = new KeymakerApiTestsContext();
-        var client = context.GetClient();
+        var client = context.GetClient(challengeMode: ChallengeMode.Http);
 
-        await client.TriggerHttpChallengeAsync();
+        await client.TriggerChallengeAsync();
         await context.WaitForStatus(client, CertificateRequestStatus.WaitingForHttpVerification);
         await client.ConfirmHttpChallengeAsync("test");
         await context.WaitForStatus(client, CertificateRequestStatus.Success);
@@ -95,7 +95,7 @@ public sealed class KeymakerApiTests
             }
         }
 
-        internal IKeymakerClient GetClient()
+        internal IKeymakerClient GetClient(ChallengeMode challengeMode)
         {
             var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([AcmeAuthContext.Object]);
 
@@ -114,6 +114,13 @@ public sealed class KeymakerApiTests
                 FullChainPem = "pem",
                 Obtained = DateTime.MaxValue,
                 PrivateKeyPem = "pemKey"
+            };
+
+            var keyMakerConf = new KeyMakerConfiguration
+            {
+                ChallengeMode = challengeMode,
+                DnsMode = DnsMode.CloudFlare,
+                StorageMode = StorageMode.Volume
             };
 
             AcmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
@@ -146,6 +153,7 @@ public sealed class KeymakerApiTests
                         services.AddSingleton(HttpProvider.Object);
                         services.AddSingleton(dnsConfig);
                         services.AddSingleton(crtConfig);
+                        services.AddSingleton(keyMakerConf);
                     });
                 });
 

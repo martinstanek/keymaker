@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Keymaker.Model;
 using Keymaker.Service;
 using Keymaker.Service.Dns;
 
@@ -18,20 +17,13 @@ public sealed class RequestHandler
         _dnsService = dnsService;
     }
 
-    public IResult TriggerDnsChallengeAsync()
+    public IResult TriggerChallengeAsync()
     {
-        var triggered = _keymakerService.RequestCertificate(CertificateRequestChallengeType.Dns, CancellationToken.None);
+        var triggered = _keymakerService.RequestCertificate(CancellationToken.None);
 
         return triggered
             ? Results.NoContent()
             : Results.Problem("Rejected", "", StatusCodes.Status429TooManyRequests);
-    }
-
-    public IResult TriggerHttpChallenge()
-    {
-        _keymakerService.RequestCertificate(CertificateRequestChallengeType.Http, CancellationToken.None);
-
-        return Results.NoContent();
     }
 
     public IResult CancelCurrentChallenge()

@@ -15,7 +15,7 @@ public sealed record ChallengeStatus
     public required CertificateRequestStatus Status { get; init; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required CertificateRequestChallengeType Challenge { get; init; }
+    public required ChallengeMode Challenge { get; init; }
 
     public static ChallengeStatus Empty => new()
     {
@@ -23,6 +23,6 @@ public sealed record ChallengeStatus
         DnsRecordValue = string.Empty,
         Requested = DateTime.MinValue,
         Status = CertificateRequestStatus.Idle,
-        Challenge = CertificateRequestChallengeType.Http
+        Challenge = ChallengeMode.Http
     };
 }

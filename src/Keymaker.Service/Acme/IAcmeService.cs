@@ -7,13 +7,7 @@ namespace Keymaker.Service.Acme;
 
 public interface IAcmeService
 {
-    Task RequestCertificateViaDnsChallengeAsync(
-        CertificateParameters certificateParameters,
-        CancellationToken cancellationToken);
-
-    Task RequestCertificateViaHttpChallengeAsync(
-        CertificateParameters certificateParameters,
-        CancellationToken cancellationToken);
+    Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateParameters certificateParameters, CancellationToken cancellationToken);
 
     event EventHandler DnsValueSet;
 

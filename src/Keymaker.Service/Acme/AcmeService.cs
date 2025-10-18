@@ -10,9 +10,9 @@ using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Callback;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Certificates;
+using Keymaker.Service.Acme.Http;
 using Certes;
 using Certes.Acme;
-using Keymaker.Service.Acme.Http;
 
 namespace Keymaker.Service.Acme;
 
@@ -53,7 +53,17 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
-    public async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters,CancellationToken cancellationToken)
+    public Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    {
+        return challengeMode switch
+        {
+            ChallengeMode.Dns => RequestCertificateViaDnsChallengeAsync(certificateParameters, cancellationToken),
+            ChallengeMode.Http => RequestCertificateViaHttpChallengeAsync(certificateParameters, cancellationToken),
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    private async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters,CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 
@@ -72,7 +82,7 @@ public sealed class AcmeService : IAcmeService
         await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
     }
 
-    public async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    private async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 

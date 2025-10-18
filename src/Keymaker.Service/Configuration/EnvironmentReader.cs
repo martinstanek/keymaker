@@ -51,7 +51,8 @@ public static class EnvironmentReader
         return new KeyMakerConfiguration()
         {
             DnsMode = Enum.Parse<DnsMode>(Environment.GetEnvironmentVariable("KEYMAKER_DNSMODE") ?? nameof(DnsMode.CloudFlare)),
-            StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume))
+            StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),
+            ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http))
         };
     }
 }
