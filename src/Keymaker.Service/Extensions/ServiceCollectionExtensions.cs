@@ -8,6 +8,7 @@ using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
+using Keymaker.Model;
 
 namespace Keymaker.Service.Extensions;
 
@@ -15,24 +16,40 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddKeymaker(this IServiceCollection services)
     {
+        var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
         var certificateParams = EnvironmentReader.GetCertificateParametersFromEnvironment();
         var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
         var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
-        var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
+        var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfiguration();
 
         return services
+            .AddDns(keyMakerConfig.DnsMode)
+            .AddStore(keyMakerConfig.StorageMode)
             .AddSingleton(keyMakerConfig)
             .AddSingleton(certificateParams)
-            .AddSingleton(cloudFlareDnsServiceConfig)
+            .AddSingleton(volumeStoreConfig)
             .AddSingleton(azureDnsServiceConfig)
-            .AddSingleton<ICertStoreService, CertStoreService>()
+            .AddSingleton(cloudFlareDnsServiceConfig)
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()
             .AddSingleton<IDnsProvider, DnsProvider>()
-            .AddSingleton<IDnsService, CloudFlareDnsService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
             .AddSingleton<IAcmeService, AcmeService>()
             .AddSingleton<IKeymakerService, KeyMakerService>();
+    }
+
+    private static IServiceCollection AddStore(this IServiceCollection services, StorageMode mode)
+    {
+        return mode == StorageMode.Volume
+            ? services.AddSingleton<ICertStoreService, VolumeCertStoreService>()
+            : services.AddSingleton<ICertStoreService, AzureKeyVaultStoreService>();
+    }
+
+    private static IServiceCollection AddDns(this IServiceCollection services, DnsMode mode)
+    {
+        return mode == DnsMode.CloudFlare
+            ? services.AddSingleton<IDnsService, CloudFlareDnsService>()
+            : services.AddSingleton<IDnsService, AzureDnsService>();
     }
 }

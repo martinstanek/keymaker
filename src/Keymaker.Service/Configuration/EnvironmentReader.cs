@@ -46,9 +46,17 @@ public static class EnvironmentReader
         };
     }
 
+    public static VolumeStoreConfiguration GetVolumeStoreConfiguration()
+    {
+        return new VolumeStoreConfiguration
+        {
+            ToplevelFolder = Environment.GetEnvironmentVariable("KEYMAKER_VSTOPLEVEL") ?? string.Empty
+        };
+    }
+
     public static KeyMakerConfiguration GetKeyMakerConfigurationFromEnvironment()
     {
-        return new KeyMakerConfiguration()
+        return new KeyMakerConfiguration
         {
             DnsMode = Enum.Parse<DnsMode>(Environment.GetEnvironmentVariable("KEYMAKER_DNSMODE") ?? nameof(DnsMode.CloudFlare)),
             StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),

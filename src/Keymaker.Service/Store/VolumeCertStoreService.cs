@@ -9,7 +9,7 @@ using Keymaker.Model;
 
 namespace Keymaker.Service.Store;
 
-public sealed class CertStoreService : ICertStoreService
+public sealed class VolumeCertStoreService : ICertStoreService
 {
     private const string DefaultFolderTimeFormat = "yyyyMMddHHddss";
     private const string TopLevelFolderName = "/data";
@@ -17,10 +17,12 @@ public sealed class CertStoreService : ICertStoreService
     private const string FullChainFileName = "fullchain.pem";
     private const string PfxFileName = "base64.pfx.txt";
 
-    private readonly ILogger<CertStoreService> _logger;
+    private readonly VolumeStoreConfiguration _configuration;
+    private readonly ILogger<VolumeCertStoreService> _logger;
 
-    public CertStoreService(ILogger<CertStoreService> logger)
+    public VolumeCertStoreService(VolumeStoreConfiguration configuration, ILogger<VolumeCertStoreService> logger)
     {
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -52,17 +54,21 @@ public sealed class CertStoreService : ICertStoreService
 
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
-        if (!Directory.Exists(TopLevelFolderName))
+        var topLevel = string.IsNullOrWhiteSpace(_configuration.ToplevelFolder)
+            ? TopLevelFolderName
+            : _configuration.ToplevelFolder;
+
+        if (!Directory.Exists(topLevel))
         {
             return CertificateInfo.Empty;
         }
 
         var result = new List<CertificateInfo>();
-        var domains = Directory.GetDirectories(TopLevelFolderName);
+        var domains = Directory.GetDirectories(topLevel);
 
         foreach (var domain in domains)
         {
-            var path = Path.Combine(TopLevelFolderName, domain);
+            var path = Path.Combine(topLevel, domain);
             var times = Directory.GetDirectories(path);
 
             foreach (var time in times)
