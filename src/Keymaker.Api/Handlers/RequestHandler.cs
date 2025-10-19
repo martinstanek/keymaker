@@ -2,19 +2,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Keymaker.Service;
-using Keymaker.Service.Dns;
 
 namespace Keymaker.Api.Handlers;
 
 public sealed class RequestHandler
 {
     private readonly IKeymakerService _keymakerService;
-    private readonly IDnsService _dnsService;
 
-    public RequestHandler(IKeymakerService keymakerService, IDnsService dnsService)
+    public RequestHandler(IKeymakerService keymakerService)
     {
         _keymakerService = keymakerService;
-        _dnsService = dnsService;
     }
 
     public IResult TriggerChallengeAsync()
@@ -40,17 +37,10 @@ public sealed class RequestHandler
         return Results.Ok(status);
     }
 
-    public async Task<IResult> GetCertificatesAsync()
+    public async Task<IResult> GetMostRecentCertificateInfoAsync()
     {
-        var certs = await _keymakerService.GetPersistedCertificatesAsync();
+        var cert = await _keymakerService.GetMostRecentCertificateInfoAsync();
 
-        return Results.Ok(certs);
-    }
-
-    public async Task<IResult> GetDnsTxtEntryAsync()
-    {
-        var value = await _dnsService.GetTxtEntryAsync();
-
-        return Results.Ok(value);
+        return Results.Ok(cert);
     }
 }

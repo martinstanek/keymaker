@@ -32,9 +32,9 @@ public sealed class KeymakerApiTests
         await client.TriggerChallengeAsync();
         await context.WaitForStatus(client, CertificateRequestStatus.Success);
 
-        var certs = await client.GetCertificatesAsync();
+        var cert = await client.GetMostRecentCertificateInfoAsync();
 
-        certs.ShouldNotBeEmpty();
+        cert.Domain.ShouldBe("example.com");
     }
 
     [Fact]
@@ -48,9 +48,9 @@ public sealed class KeymakerApiTests
         await client.ConfirmHttpChallengeAsync("test");
         await context.WaitForStatus(client, CertificateRequestStatus.Success);
 
-        var certs = await client.GetCertificatesAsync();
+        var cert = await client.GetMostRecentCertificateInfoAsync();
 
-        certs.ShouldNotBeEmpty();
+        cert.Domain.ShouldBe("example.com");
     }
 
     private sealed class KeymakerApiTestsContext
@@ -108,12 +108,10 @@ public sealed class KeymakerApiTests
 
             var certInfo = new CertificateInfo
             {
-                Base64Pfx = "base64",
-                Domain = "domain.com",
+                Domain = "example.com",
                 Expiry = DateTime.MaxValue,
-                FullChainPem = "pem",
-                Obtained = DateTime.MaxValue,
-                PrivateKeyPem = "pemKey"
+                Obtained = DateTime.MinValue,
+                Issuer = "Let's Encrypt"
             };
 
             var keyMakerConf = new KeyMakerConfiguration
@@ -134,7 +132,7 @@ public sealed class KeymakerApiTests
             DnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             DnsService.Setup(s => s.GetTxtEntryAsync()).ReturnsAsync("key");
             CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateParameters>())).ReturnsAsync(cert);
-            CertStore.Setup(s => s.GetCertificatesAsync()).ReturnsAsync([certInfo]);
+            CertStore.Setup(s => s.GetMostRecentCertificateInfoAsync()).ReturnsAsync(certInfo);
             HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             HttpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
 

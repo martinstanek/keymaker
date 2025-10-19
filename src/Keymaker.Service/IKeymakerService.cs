@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using System.Collections.Immutable;
 using System.Threading;
 using Keymaker.Model;
 
@@ -13,5 +12,5 @@ public interface IKeymakerService
 
     ChallengeStatus GetCurrentRequestStatus();
 
-    Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync();
+    Task<CertificateInfo> GetMostRecentCertificateInfoAsync();
 }

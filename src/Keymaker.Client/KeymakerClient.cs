@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using System.Collections.Immutable;
 using System.Net.Http;
 using System.Net.Http.Json;
 using Keymaker.Model;
@@ -15,9 +14,11 @@ public sealed class KeymakerClient : IKeymakerClient
         _httpClient = httpClient;
     }
 
-    public Task<ImmutableArray<CertificateInfo>> GetCertificatesAsync()
+    public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
-        return _httpClient.GetFromJsonAsync<ImmutableArray<CertificateInfo>>("/certificates");
+        var certificateInfo = await _httpClient.GetFromJsonAsync<CertificateInfo>("/certificate");
+
+        return certificateInfo ?? CertificateInfo.Empty;
     }
 
     public async Task<ChallengeStatus> GetChallengeStatusAsync()

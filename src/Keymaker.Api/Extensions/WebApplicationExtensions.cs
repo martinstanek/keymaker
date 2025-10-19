@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,12 +24,8 @@ public static class WebApplicationExtensions
         api.MapGet("/challenge/status", ( [FromServices] RequestHandler handler) => handler.GetChallengeStatus())
            .Produces<ChallengeStatus>();
 
-        api.MapGet("/certificates", async ([FromServices] RequestHandler handler) => await handler.GetCertificatesAsync())
-           .Produces<ImmutableArray<CertificateInfo>>();
-
-        api.MapGet("/dns/txt", async ( [FromServices] RequestHandler handler)
-              => await handler.GetDnsTxtEntryAsync())
-           .Produces<string>(contentType: "test/plain");
+        api.MapGet("/certificate", async ([FromServices] RequestHandler handler) => await handler.GetMostRecentCertificateInfoAsync())
+           .Produces<CertificateInfo>();
 
         return webApplication;
     }

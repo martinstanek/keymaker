@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Immutable;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Store;
@@ -55,9 +54,9 @@ public sealed class KeyMakerService : IKeymakerService
         return _challengeStatus;
     }
 
-    public Task<ImmutableArray<CertificateInfo>> GetPersistedCertificatesAsync()
+    public Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
-        return _storeService.GetCertificatesAsync();
+        return _storeService.GetMostRecentCertificateInfoAsync();
     }
 
     private void StartChallenge(CancellationToken token)

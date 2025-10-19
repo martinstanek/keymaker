@@ -1,8 +1,9 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 using Keymaker.Model;
 
@@ -49,11 +50,11 @@ public sealed class CertStoreService : ICertStoreService
         }
     }
 
-    public async Task<ImmutableArray<CertificateInfo>> GetCertificatesAsync()
+    public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
         if (!Directory.Exists(TopLevelFolderName))
         {
-            return ImmutableArray<CertificateInfo>.Empty;
+            return CertificateInfo.Empty;
         }
 
         var result = new List<CertificateInfo>();
@@ -66,20 +67,28 @@ public sealed class CertStoreService : ICertStoreService
 
             foreach (var time in times)
             {
-                var info = new CertificateInfo
-                {
-                    Domain = domain,
-                    Obtained = DateTime.MinValue,
-                    Expiry = DateTime.MinValue,
-                    Base64Pfx = await File.ReadAllTextAsync(Path.Combine(path, time, PfxFileName)),
-                    FullChainPem = await File.ReadAllTextAsync(Path.Combine(path, time, FullChainFileName)),
-                    PrivateKeyPem = await File.ReadAllTextAsync(Path.Combine(path, time, PrivateKeyFileName))
-                };
+                var base64 = await File.ReadAllTextAsync(Path.Combine(path, time, PfxFileName));
+                var cert = FromBase64(base64, time);
 
-                result.Add(info);
+                result.Add(cert);
             }
         }
 
-        return result.ToImmutableArray();
+        return result.MaxBy(c => c.Obtained) ?? CertificateInfo.Empty;
+    }
+
+    private static CertificateInfo FromBase64(string base64, string obtainedTime)
+    {
+        var certificateBytes = Convert.FromBase64String(base64);
+        var certificate = X509CertificateLoader.LoadCertificate(certificateBytes);
+        var obtained = DateTime.ParseExact(obtainedTime, DefaultFolderTimeFormat, provider: null);
+
+        return new CertificateInfo
+        {
+            Domain = certificate.Subject,
+            Issuer = certificate.Issuer,
+            Expiry = certificate.NotAfter,
+            Obtained = obtained
+        };
     }
 }
