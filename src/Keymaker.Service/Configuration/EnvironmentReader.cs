@@ -7,7 +7,7 @@ public static class EnvironmentReader
 {
     public static CertificateParameters GetCertificateParametersFromEnvironment()
     {
-        return new CertificateParameters
+        var result = new CertificateParameters
         {
             Contact = Environment.GetEnvironmentVariable("KEYMAKER_CONTACT") ?? string.Empty,
             Domain = Environment.GetEnvironmentVariable("KEYMAKER_DOMAIN") ?? string.Empty,
@@ -19,11 +19,13 @@ public static class EnvironmentReader
             Organization = Environment.GetEnvironmentVariable("KEYMAKER_ORG") ?? string.Empty,
             OrganizationUnit = Environment.GetEnvironmentVariable("KEYMAKER_UNIT") ?? string.Empty
         };
+
+        return result;
     }
 
     public static CloudFlareDnsServiceConfiguration GetCloudFlareDnsServiceConfigurationFromEnvironment()
     {
-        return new CloudFlareDnsServiceConfiguration
+        var result = new CloudFlareDnsServiceConfiguration
         {
             Email = Environment.GetEnvironmentVariable("KEYMAKER_CFDNSAPIEMAIL") ?? string.Empty,
             Key = Environment.GetEnvironmentVariable("KEYMAKER_CFDNSAPIKEY") ?? string.Empty,
@@ -31,36 +33,64 @@ public static class EnvironmentReader
             DnsChallengeCheckDomain = Environment.GetEnvironmentVariable("KEYMAKER_CFDNSCHECKDOMAIN") ?? string.Empty,
             DnsChallengeSetDomain = Environment.GetEnvironmentVariable("KEYMAKER_CFDNSSETDOMAIN") ?? string.Empty
         };
+
+        return result;
+    }
+
+    public static AzureConfiguration GetAzureConfigurationFromEnvironment()
+    {
+        var result = new AzureConfiguration
+        {
+            ClientId = Guid.Parse(Environment.GetEnvironmentVariable("KEYMAKER_AZCLIENTID") ?? Guid.Empty.ToString()),
+            TenantId = Guid.Parse(Environment.GetEnvironmentVariable("KEYMAKER_AZTENANTID") ?? Guid.Empty.ToString()),
+            Secret = Environment.GetEnvironmentVariable("KEYMAKER_AZSECRET") ?? string.Empty
+        };
+
+        return result;
     }
 
     public static AzureDnsServiceConfiguration GetAzureDnsServiceConfigurationFromEnvironment()
     {
-        return new AzureDnsServiceConfiguration
+        var result = new AzureDnsServiceConfiguration
         {
-            ClientId = Guid.Parse(Environment.GetEnvironmentVariable("KEYMAKER_AZDNSCLIENTID") ?? Guid.Empty.ToString()),
-            TenantId = Guid.Parse(Environment.GetEnvironmentVariable("KEYMAKER_AZDNSTENANTID") ?? Guid.Empty.ToString()),
-            Secret = Environment.GetEnvironmentVariable("KEYMAKER_AZDNSSECRET") ?? string.Empty,
             DnsZoneResourceId = Environment.GetEnvironmentVariable("KEYMAKER_AZDNSRESOURCEID") ?? string.Empty,
             CheckDomain = Environment.GetEnvironmentVariable("KEYMAKER_AZDNSCHECKDOMAIN") ?? string.Empty,
             SetDomain = Environment.GetEnvironmentVariable("KEYMAKER_AZDNSSETDOMAIN") ?? string.Empty
         };
+
+        return result;
     }
 
-    public static VolumeStoreConfiguration GetVolumeStoreConfiguration()
+    public static AzureKeyVaultStoreConfiguration GetAzureKeyVaultConfigurationFromEnvironment()
     {
-        return new VolumeStoreConfiguration
+        var result = new AzureKeyVaultStoreConfiguration
+        {
+            KeyVaultUrl = Environment.GetEnvironmentVariable("KEYMAKER_AZKVURL") ?? string.Empty,
+            CertificateName = Environment.GetEnvironmentVariable("KEYMAKER_AZKVCERTIFICATENAME") ?? string.Empty
+        };
+
+        return result;
+    }
+
+    public static VolumeStoreConfiguration GetVolumeStoreConfigurationFromEnvironment()
+    {
+        var result = new VolumeStoreConfiguration
         {
             ToplevelFolder = Environment.GetEnvironmentVariable("KEYMAKER_VSTOPLEVEL") ?? string.Empty
         };
+
+        return result;
     }
 
     public static KeyMakerConfiguration GetKeyMakerConfigurationFromEnvironment()
     {
-        return new KeyMakerConfiguration
+        var result = new KeyMakerConfiguration
         {
             DnsMode = Enum.Parse<DnsMode>(Environment.GetEnvironmentVariable("KEYMAKER_DNSMODE") ?? nameof(DnsMode.CloudFlare)),
             StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),
             ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http))
         };
+
+        return result;
     }
 }

@@ -7,6 +7,7 @@ using CloudFlareDns;
 using CloudFlareDns.Objects.Record;
 using DnsClient;
 using Keymaker.Model;
+using Keymaker.Service.Configuration;
 
 namespace Keymaker.Service.Dns;
 

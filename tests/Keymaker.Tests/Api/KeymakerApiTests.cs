@@ -15,6 +15,7 @@ using Keymaker.Service.Store;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
+using Keymaker.Service.Configuration;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -103,7 +104,10 @@ public sealed class KeymakerApiTests
             {
                 PemKey = "PemKey",
                 Pem = "Pem",
-                Base64 = "Base64"
+                Base64 = "Base64",
+                Issuer = "issuer",
+                Domain = "example.com",
+                Expiry = DateTime.MinValue
             };
 
             var certInfo = new CertificateInfo

@@ -6,7 +6,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager.Dns;
 using Azure.ResourceManager.Dns.Models;
-using Keymaker.Model;
+using Keymaker.Service.Configuration;
 
 namespace Keymaker.Service.Dns;
 
@@ -14,13 +14,15 @@ public sealed class AzureDnsService : IDnsService
 {
     private const int TtlSeconds = 300;
 
-    private readonly AzureDnsServiceConfiguration _configuration;
+    private readonly AzureConfiguration _azConfig;
+    private readonly AzureDnsServiceConfiguration _azDnsConfig;
     private readonly Lazy<DnsTxtRecordCollection> _dnsRecords;
 
-    public AzureDnsService(AzureDnsServiceConfiguration configuration)
+    public AzureDnsService(AzureConfiguration azConfig, AzureDnsServiceConfiguration azDnsConfig)
     {
-        _configuration = configuration;
-        _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords(configuration));
+        _azConfig = azConfig;
+        _azDnsConfig = azDnsConfig;
+        _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords());
     }
 
     public async Task AddTxtEntryAsync(string value)
@@ -37,30 +39,31 @@ public sealed class AzureDnsService : IDnsService
             }
         };
 
-        await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _configuration.SetDomain, newData);
+        await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _azDnsConfig.SetDomain, newData);
     }
 
     public async Task<string> GetTxtEntryAsync()
     {
-        var record = await _dnsRecords.Value.GetAsync(_configuration.CheckDomain);
-        var value = record.HasValue
+        // TODO: use dns client we are waiting for the propagation as seen by the external systems
+        var record = await _dnsRecords.Value.GetAsync(_azDnsConfig.CheckDomain);
+        var value = record?.HasValue ?? false
             ? record.Value.Data.DnsTxtRecords.FirstOrDefault()?.Values.FirstOrDefault() ?? string.Empty
             : string.Empty;
 
         return value;
     }
 
-    private static DnsTxtRecordCollection ResolveDnsRecords(AzureDnsServiceConfiguration configuration)
+    private DnsTxtRecordCollection ResolveDnsRecords()
     {
         var credential = new ClientSecretCredential
         (
-            tenantId: configuration.TenantId.ToString(),
-            clientId: configuration.ClientId.ToString(),
-            clientSecret: configuration.Secret
+            tenantId: _azConfig.TenantId.ToString(),
+            clientId: _azConfig.ClientId.ToString(),
+            clientSecret: _azConfig.Secret
         );
 
         var armClient = new Azure.ResourceManager.ArmClient(credential);
-        var resource = new ResourceIdentifier(configuration.DnsZoneResourceId);
+        var resource = new ResourceIdentifier(_azDnsConfig.DnsZoneResourceId);
         var dnsZone = armClient.GetDnsZoneResource(resource);
         var txtRecords = dnsZone.GetDnsTxtRecords();
 

@@ -1,4 +1,6 @@
-namespace Keymaker.Model;
+using Keymaker.Model;
+
+namespace Keymaker.Service.Configuration;
 
 public sealed record KeyMakerConfiguration
 {

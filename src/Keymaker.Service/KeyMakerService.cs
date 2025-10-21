@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
+using Keymaker.Service.Configuration;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service;

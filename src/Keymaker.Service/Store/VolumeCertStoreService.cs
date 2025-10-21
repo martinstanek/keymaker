@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.Serialization;
 using Microsoft.Extensions.Logging;
 using Keymaker.Model;
+using Keymaker.Service.Configuration;
 
 namespace Keymaker.Service.Store;
 
@@ -15,6 +17,7 @@ public sealed class VolumeCertStoreService : ICertStoreService
     private const string TopLevelFolderName = "/data";
     private const string PrivateKeyFileName = "privkey.pem";
     private const string FullChainFileName = "fullchain.pem";
+    private const string CertificateInfoFileName = "info.json";
     private const string PfxFileName = "base64.pfx.txt";
 
     private readonly VolumeStoreConfiguration _configuration;
@@ -26,15 +29,13 @@ public sealed class VolumeCertStoreService : ICertStoreService
         _logger = logger;
     }
 
-    public async Task PersistCertificatesAsync(string domain, string fullChainPem, string privateKeyPem, string base64Pfx)
+    public async Task PersistCertificatesAsync(CertificatePersistenceInfo persistenceInfo)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(domain);
-        ArgumentException.ThrowIfNullOrWhiteSpace(fullChainPem);
-        ArgumentException.ThrowIfNullOrWhiteSpace(privateKeyPem);
-        ArgumentException.ThrowIfNullOrWhiteSpace(base64Pfx);
-
+        var topLevel = string.IsNullOrWhiteSpace(_configuration.ToplevelFolder)
+            ? TopLevelFolderName
+            : _configuration.ToplevelFolder;
         var folder = DateTime.Now.ToString(DefaultFolderTimeFormat);
-        var path = Path.Combine(TopLevelFolderName, domain, folder);
+        var path = Path.Combine(topLevel, persistenceInfo.Domain, folder);
 
         _logger.LogDebug($"Persisting certificates into: {path}");
 
@@ -42,9 +43,10 @@ public sealed class VolumeCertStoreService : ICertStoreService
         {
             Directory.CreateDirectory(path);
 
-            await File.WriteAllTextAsync(Path.Combine(path, FullChainFileName), fullChainPem);
-            await File.WriteAllTextAsync(Path.Combine(path, PrivateKeyFileName), privateKeyPem);
-            await File.WriteAllTextAsync(Path.Combine(path, PfxFileName), base64Pfx);
+            await File.WriteAllTextAsync(Path.Combine(path, FullChainFileName), persistenceInfo.FullChainPem);
+            await File.WriteAllTextAsync(Path.Combine(path, PrivateKeyFileName), persistenceInfo.PrivateKeyPem);
+            await File.WriteAllTextAsync(Path.Combine(path, PfxFileName), persistenceInfo.Base64Pfx);
+            await File.WriteAllTextAsync(Path.Combine(path, CertificateInfoFileName), JsonSerializer.Serialize(persistenceInfo));
         }
         catch (Exception e)
         {
@@ -73,8 +75,8 @@ public sealed class VolumeCertStoreService : ICertStoreService
 
             foreach (var time in times)
             {
-                var base64 = await File.ReadAllTextAsync(Path.Combine(path, time, PfxFileName));
-                var cert = FromBase64(base64, time);
+                var infoPath = Path.Combine(path, time, CertificateInfoFileName);
+                var cert = await FromInfoAsync(infoPath);
 
                 result.Add(cert);
             }
@@ -83,18 +85,22 @@ public sealed class VolumeCertStoreService : ICertStoreService
         return result.MaxBy(c => c.Obtained) ?? CertificateInfo.Empty;
     }
 
-    private static CertificateInfo FromBase64(string base64, string obtainedTime)
+    private static async Task<CertificateInfo> FromInfoAsync(string infoPath)
     {
-        var certificateBytes = Convert.FromBase64String(base64);
-        var certificate = X509CertificateLoader.LoadCertificate(certificateBytes);
-        var obtained = DateTime.ParseExact(obtainedTime, DefaultFolderTimeFormat, provider: null);
+        var infoContent = await File.ReadAllTextAsync(infoPath);
+        var info = JsonSerializer.Deserialize<CertificatePersistenceInfo>(infoContent);
+
+        if (info is null)
+        {
+            throw new SerializationException();
+        }
 
         return new CertificateInfo
         {
-            Domain = certificate.Subject,
-            Issuer = certificate.Issuer,
-            Expiry = certificate.NotAfter,
-            Obtained = obtained
+            Obtained = info.Obtained,
+            Domain =  info.Domain,
+            Issuer = info.Issuer,
+            Expiry = info.Expiry
         };
     }
 }

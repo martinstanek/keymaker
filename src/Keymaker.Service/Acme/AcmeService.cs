@@ -156,6 +156,9 @@ public sealed class AcmeService : IAcmeService
             try
             {
                 await FinaliseOrderAsync(order, certificateParameters);
+
+                // TODO: fix the shit
+                //break;
             }
             catch (Exception e)
             {
@@ -171,8 +174,19 @@ public sealed class AcmeService : IAcmeService
         _logger.LogDebug("Generating the certificate");
 
         var cert = await _certProducer.BuildCertificateAsync(order, certificateParameters);
+        var certPersistenceInfo = new CertificatePersistenceInfo
+        {
+            Issuer = cert.Issuer,
+            Obtained = DateTime.Now,
+            Domain = cert.Domain,
+            Expiry = cert.Expiry,
+            Base64Pfx = cert.Base64,
+            FullChainPem = cert.Pem,
+            PrivateKeyPem = cert.PemKey,
+            Password = certificateParameters.Password
+        };
 
-        await _certStoreService.PersistCertificatesAsync(certificateParameters.Domain, cert.Pem, cert.PemKey, cert.Base64);
+        await _certStoreService.PersistCertificatesAsync(certPersistenceInfo);
 
         Succeeded.Invoke(this, EventArgs.Empty);
     }

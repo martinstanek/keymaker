@@ -8,7 +8,6 @@ using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
-using Keymaker.Model;
 
 namespace Keymaker.Service.Extensions;
 
@@ -19,16 +18,20 @@ public static class ServiceCollectionExtensions
         var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
         var certificateParams = EnvironmentReader.GetCertificateParametersFromEnvironment();
         var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
+        var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfigurationFromEnvironment();
+        var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
         var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
-        var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfiguration();
+        var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
 
         return services
             .AddDns(keyMakerConfig.DnsMode)
             .AddStore(keyMakerConfig.StorageMode)
+            .AddSingleton(azureConfig)
             .AddSingleton(keyMakerConfig)
             .AddSingleton(certificateParams)
             .AddSingleton(volumeStoreConfig)
             .AddSingleton(azureDnsServiceConfig)
+            .AddSingleton(azureKeyVaultStoreConfig)
             .AddSingleton(cloudFlareDnsServiceConfig)
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()
