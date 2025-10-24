@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using CloudFlareDns;
 using CloudFlareDns.Objects.Record;
-using DnsClient;
-using Keymaker.Model;
 using Keymaker.Service.Configuration;
 
 namespace Keymaker.Service.Dns;
@@ -17,19 +14,18 @@ public sealed class CloudFlareDnsService : IDnsService
     private const string RecordComment = "Added by the Keymaker.";
 
     private readonly CloudFlareDnsServiceConfiguration _configuration;
+    private readonly IDnsLookupService _lookupService;
     private readonly ILogger<CloudFlareDnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
-    private readonly Lazy<LookupClient> _lookupClient;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-
-    public CloudFlareDnsService(CloudFlareDnsServiceConfiguration configuration, ILogger<CloudFlareDnsService> logger)
+    public CloudFlareDnsService(CloudFlareDnsServiceConfiguration configuration, IDnsLookupService lookupService, ILogger<CloudFlareDnsService> logger)
     {
-        _lookupClient = new Lazy<LookupClient>(() => new LookupClient());
         _dnsClient = new Lazy<CloudFlareDnsClient>(() => new CloudFlareDnsClient(
             xAuthKey: configuration.Key,
             xAuthEmail: configuration.Email,
             zoneIdentifier: configuration.Zone));
         _configuration = configuration;
+        _lookupService = lookupService;
         _logger = logger;
     }
 
@@ -65,26 +61,6 @@ public sealed class CloudFlareDnsService : IDnsService
 
     public async Task<string> GetTxtEntryAsync()
     {
-        await _semaphore.WaitAsync();
-
-        try
-        {
-            var result = await _lookupClient.Value.QueryAsync(_configuration.DnsChallengeCheckDomain, QueryType.TXT);
-
-            return result.Answers
-                .TxtRecords()
-                .FirstOrDefault()?.Text
-                .FirstOrDefault() ?? string.Empty;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, e.Message);
-
-            throw;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        return await _lookupService.GetTxtEntryAsync(_configuration.DnsChallengeCheckDomain);
     }
 }

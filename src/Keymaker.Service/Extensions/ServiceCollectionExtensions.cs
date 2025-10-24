@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()
             .AddSingleton<IDnsProvider, DnsProvider>()
+            .AddSingleton<IDnsLookupService, DnsLookupService>()
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
             .AddSingleton<IAcmeService, AcmeService>()

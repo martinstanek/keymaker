@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -16,12 +17,20 @@ public sealed class AzureDnsService : IDnsService
 
     private readonly AzureConfiguration _azConfig;
     private readonly AzureDnsServiceConfiguration _azDnsConfig;
+    private readonly IDnsLookupService _dnsLookupService;
+    private readonly ILogger<AzureDnsService> _logger;
     private readonly Lazy<DnsTxtRecordCollection> _dnsRecords;
 
-    public AzureDnsService(AzureConfiguration azConfig, AzureDnsServiceConfiguration azDnsConfig)
+    public AzureDnsService(
+        AzureConfiguration azConfig,
+        AzureDnsServiceConfiguration azDnsConfig,
+        IDnsLookupService dnsLookupService,
+        ILogger<AzureDnsService> logger)
     {
         _azConfig = azConfig;
         _azDnsConfig = azDnsConfig;
+        _dnsLookupService = dnsLookupService;
+        _logger = logger;
         _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords());
     }
 
@@ -44,6 +53,8 @@ public sealed class AzureDnsService : IDnsService
 
     public async Task<string> GetTxtEntryAsync()
     {
+        return await _dnsLookupService.GetTxtEntryAsync(_azDnsConfig.CheckDomain);
+        /*
         // TODO: use dns client we are waiting for the propagation as seen by the external systems
         var record = await _dnsRecords.Value.GetAsync(_azDnsConfig.CheckDomain);
         var value = record?.HasValue ?? false
@@ -51,6 +62,7 @@ public sealed class AzureDnsService : IDnsService
             : string.Empty;
 
         return value;
+        */
     }
 
     private DnsTxtRecordCollection ResolveDnsRecords()

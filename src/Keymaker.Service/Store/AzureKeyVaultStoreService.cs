@@ -33,7 +33,7 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
         var certBytes = Base64.Decode(persistenceInfo.Base64Pfx);
         var previousVersion = await GetMostRecentCertificateInfoAsync();
 
-        if (previousVersion.IsEmpty())
+        if (!previousVersion.IsEmpty())
         {
             var operation = await _client.Value.StartCreateCertificateAsync(_azKeyVaultStoreConfig.CertificateName, policy: null);
             var newCert = await operation.WaitForCompletionAsync();
