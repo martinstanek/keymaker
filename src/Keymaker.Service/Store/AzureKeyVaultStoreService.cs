@@ -4,6 +4,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Keymaker.Model;
 using Keymaker.Service.Configuration;
+using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Utilities.Encoders; // TODO: ??
 
 namespace Keymaker.Service.Store;
@@ -14,17 +15,32 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
     private const string IssuerTag = "Issuer";
 
     private readonly AzureKeyVaultStoreConfiguration _azKeyVaultStoreConfig;
+    private readonly ILogger<AzureKeyVaultStoreService> _logger;
     private readonly Lazy<CertificateClient> _client;
 
-    public AzureKeyVaultStoreService(AzureConfiguration azConfig, AzureKeyVaultStoreConfiguration azKeyVaultStoreConfig)
+    public AzureKeyVaultStoreService(
+        AzureConfiguration azConfig,
+        AzureKeyVaultStoreConfiguration azKeyVaultStoreConfig,
+        ILogger<AzureKeyVaultStoreService> logger)
     {
         _azKeyVaultStoreConfig = azKeyVaultStoreConfig;
+        _logger = logger;
         _client = new Lazy<CertificateClient>(GetCertificateClient(azConfig, azKeyVaultStoreConfig));
     }
 
     public async Task PersistCertificatesAsync(CertificatePersistenceInfo persistenceInfo)
     {
         var certBytes = Base64.Decode(persistenceInfo.Base64Pfx);
+        var previousVersion = await GetMostRecentCertificateInfoAsync();
+
+        if (previousVersion.IsEmpty())
+        {
+            var operation = await _client.Value.StartCreateCertificateAsync(_azKeyVaultStoreConfig.CertificateName, policy: null);
+            var newCert = await operation.WaitForCompletionAsync();
+
+            _logger.LogDebug($"Created a new certificate version: {newCert.Value.Properties.Version}");
+        }
+
         var importOptions = new ImportCertificateOptions(_azKeyVaultStoreConfig.CertificateName, certBytes)
         {
             Password = persistenceInfo.Password,
@@ -33,11 +49,18 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
         };
 
         await _client.Value.ImportCertificateAsync(importOptions);
+
+        _logger.LogDebug($"Imported certificate version: {_azKeyVaultStoreConfig.CertificateName}");
     }
 
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
         var cert = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
+
+        if (!cert.HasValue)
+        {
+            return CertificateInfo.Empty;
+        }
 
         cert.Value.Properties.Tags.TryGetValue(DomainTag, out var domain);
         cert.Value.Properties.Tags.TryGetValue(IssuerTag, out var issuer);

@@ -19,4 +19,6 @@ public sealed record CertificateInfo
         Expiry = DateTime.MinValue,
         Obtained = DateTime.MinValue
     };
+
+    public bool IsEmpty() => string.IsNullOrWhiteSpace(Issuer) && string.IsNullOrWhiteSpace(Domain);
 }
