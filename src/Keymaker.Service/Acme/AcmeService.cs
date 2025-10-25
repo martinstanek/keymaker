@@ -20,8 +20,6 @@ public sealed class AcmeService : IAcmeService
 {
     private const int WaitForHttpCallbackSeconds = 60;
     private const int WaitForDnsPropagationSeconds = 3600;
-    private const int WaitForDnsChallengeOrderFinalisationSeconds = 60;
-    private const int CheckOrderEverySeconds = 10;
     private const int CheckDnsPropagationEverySeconds = 10;
 
     private readonly IAcmeContextFactory _acmeContextFactory;
@@ -73,13 +71,8 @@ public sealed class AcmeService : IAcmeService
 
         DnsChallengeTriggered.Invoke(this, EventArgs.Empty);
 
-        await PerformChallengeAsync(
-            acme,
-            order,
-            isDnsChallenge: true,
-            cancellationToken);
-
-        await WaitForDnsOrderFinalisationAsync(order, certificateParameters, cancellationToken);
+        await PerformChallengeAsync(acme, order, isDnsChallenge: true, cancellationToken);
+        await FinaliseOrderAsync(order, certificateParameters);
     }
 
     private async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
@@ -90,16 +83,11 @@ public sealed class AcmeService : IAcmeService
 
         _logger.LogDebug($"Order negotiated {order.Location}");
 
-        await PerformChallengeAsync(
-            acme,
-            order,
-            isDnsChallenge: false,
-            cancellationToken);
+        await PerformChallengeAsync(acme, order, isDnsChallenge: false, cancellationToken);
 
         HttpChallengeTriggered.Invoke(this, EventArgs.Empty);
 
         await WaitForHttpCallbackAsync(cancellationToken);
-
         await FinaliseOrderAsync(order, certificateParameters);
     }
 
@@ -138,35 +126,6 @@ public sealed class AcmeService : IAcmeService
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
         }
-    }
-
-    private async Task WaitForDnsOrderFinalisationAsync(IOrderContext order, CertificateParameters certificateParameters, CancellationToken cancellationToken)
-    {
-        var i = 0;
-
-        while (!cancellationToken.IsCancellationRequested && i++ < WaitForDnsChallengeOrderFinalisationSeconds)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-
-            if (i % CheckOrderEverySeconds != 0)
-            {
-                continue;
-            }
-
-            try
-            {
-                await FinaliseOrderAsync(order, certificateParameters);
-
-                // TODO: fix the shit
-                //break;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-            }
-        }
-
-        Failed.Invoke(this, EventArgs.Empty);
     }
 
     private async Task FinaliseOrderAsync(IOrderContext order, CertificateParameters certificateParameters)
