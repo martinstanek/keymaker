@@ -31,16 +31,6 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
     public async Task PersistCertificatesAsync(CertificatePersistenceInfo persistenceInfo)
     {
         var certBytes = Base64.Decode(persistenceInfo.Base64Pfx);
-        var previousVersion = await GetMostRecentCertificateInfoAsync();
-
-        if (!previousVersion.IsEmpty())
-        {
-            var operation = await _client.Value.StartCreateCertificateAsync(_azKeyVaultStoreConfig.CertificateName, policy: null);
-            var newCert = await operation.WaitForCompletionAsync();
-
-            _logger.LogDebug($"Created a new certificate version: {newCert.Value.Properties.Version}");
-        }
-
         var importOptions = new ImportCertificateOptions(_azKeyVaultStoreConfig.CertificateName, certBytes)
         {
             Password = persistenceInfo.Password,
@@ -50,7 +40,7 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
 
         await _client.Value.ImportCertificateAsync(importOptions);
 
-        _logger.LogDebug($"Imported certificate version: {_azKeyVaultStoreConfig.CertificateName}");
+        _logger.LogDebug($"Certificate imported: {_azKeyVaultStoreConfig.CertificateName}");
     }
 
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()

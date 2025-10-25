@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Azure;
@@ -54,15 +53,6 @@ public sealed class AzureDnsService : IDnsService
     public async Task<string> GetTxtEntryAsync()
     {
         return await _dnsLookupService.GetTxtEntryAsync(_azDnsConfig.CheckDomain);
-        /*
-        // TODO: use dns client we are waiting for the propagation as seen by the external systems
-        var record = await _dnsRecords.Value.GetAsync(_azDnsConfig.CheckDomain);
-        var value = record?.HasValue ?? false
-            ? record.Value.Data.DnsTxtRecords.FirstOrDefault()?.Values.FirstOrDefault() ?? string.Empty
-            : string.Empty;
-
-        return value;
-        */
     }
 
     private DnsTxtRecordCollection ResolveDnsRecords()
