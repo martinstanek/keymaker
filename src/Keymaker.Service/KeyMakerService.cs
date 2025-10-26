@@ -63,7 +63,14 @@ public sealed class KeyMakerService : IKeymakerService
 
     public Task<ChallengeInfo> GetChallengeInfoAsync()
     {
-        return Task.FromResult(ChallengeInfo.Empty);
+        var info = ChallengeInfo.Empty with
+        {
+            Contact = _certificateParameters.Contact,
+            CertificateName = _certificateParameters.CertificateName,
+            Domain = _certificateParameters.Domain
+        };
+
+        return Task.FromResult(info);
     }
 
     private void StartChallenge(CancellationToken token)

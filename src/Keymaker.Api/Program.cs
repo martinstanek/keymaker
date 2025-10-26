@@ -6,6 +6,7 @@ using Keymaker.Service.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
 builder.Services.ConfigureHandlers();
 builder.Services.ConfigureSerialization();
 builder.Services.AddKeymaker();
@@ -17,6 +18,7 @@ var app = builder.Build();
 app.UseSwaggerApiDoc("Keymaker API");
 app.UseKeymaker();
 app.UseCustomEndpoints();
+app.UseCors(p => { p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
 app.Run();
 
 public partial class Program;

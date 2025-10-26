@@ -45,8 +45,10 @@ public partial class MainView
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task ReloadAsync()
+    private async Task ReloadAsync()
     {
-        return Task.CompletedTask;
+        var info = await Client.GetChallengeInfoInfoAsync();
+
+        Eventing.SignalChallengeInfo(info);
     }
 }
