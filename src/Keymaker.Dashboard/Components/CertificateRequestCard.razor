@@ -11,17 +11,17 @@
             <MudItem xs="6">
                 <ValueLabel Label="Challenge mode:" Value=@ChallengeInfo.ChallengeMode/>
                 <ValueLabel Label="DNS mode:" Value=@ChallengeInfo.DnsMode />
-                <ValueLabel Label="Store mode:" Value="Azure KeyVault" />
-                <ValueLabel Label="KeyVault name:" Value="awitec-wildcard-keymaker" />
+                <ValueLabel Label="Store mode:" Value=@ChallengeInfo.Domain />
+                <ValueLabel Label="KeyVault name:" Value=@ChallengeInfo.KeyVaultName />
                 <ValueLabel Label="Domain" Value=@ChallengeInfo.Domain />
                 <ValueLabel Label="Requester" Value=@ChallengeInfo.Contact />
                 <ValueLabel Label="Organization:" Value="Awitec HQ, Zürich, Switzerland" />
             </MudItem>
             <MudItem xs="6">
-                <ValueLabel Label="Obtained:" Value="2025.10.01"/>
-                <ValueLabel Label="Expiry:" Value="2026.01.01" />
+                <ValueLabel Label="Obtained:" Value=@ChallengeInfo.Obtained?.ToShortDateString()/>
+                <ValueLabel Label="Expiry:" Value=@ChallengeInfo.Expiry?.ToShortDateString() />
                 <ValueLabel Label="Next renewal:" Value="2025.11.01" />
-                <ValueLabel Label="Issuer:" Value="Let's Encrypt" />
+                <ValueLabel Label="Issuer:" Value=@ChallengeInfo.Issuer />
                 <ValueLabel Label="Autorenewal:" Value="Yes" />
                 <ValueLabel Label="Renew every (days):" Value="20" />
                 <ValueLabel Label="Keymaker state:" Value="Idle" />

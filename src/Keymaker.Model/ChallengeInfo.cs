@@ -18,6 +18,8 @@ public sealed record ChallengeInfo
 
     public required string DnsMode { get; init; }
 
+    public required string StoreMode { get; init; }
+
     public required string KeyVaultName { get; init; }
 
     public required string Issuer { get; init; }
@@ -40,6 +42,7 @@ public sealed record ChallengeInfo
         ChallengeMode = string.Empty,
         Contact = string.Empty,
         DnsMode = string.Empty,
+        StoreMode = string.Empty,
         Domain = string.Empty,
         Issuer = string.Empty,
         KeyVaultName = string.Empty,

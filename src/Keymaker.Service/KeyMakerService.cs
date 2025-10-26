@@ -74,7 +74,8 @@ public sealed class KeyMakerService : IKeymakerService
             Issuer = lastCert.Issuer,
             DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
             Status = _challengeStatus.Status.ToString(),
-            ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString()
+            ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
+            StoreMode = _keyMakerConfiguration.StorageMode.ToString()
         };
 
         return info;
