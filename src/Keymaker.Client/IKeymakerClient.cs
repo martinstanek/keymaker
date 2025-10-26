@@ -7,6 +7,8 @@ public interface IKeymakerClient
 {
     Task<CertificateInfo> GetMostRecentCertificateInfoAsync();
 
+    Task<ChallengeInfo> GetChallengeInfoInfoAsync();
+
     Task<ChallengeStatus> GetChallengeStatusAsync();
 
     Task<string> ConfirmHttpChallengeAsync(string challenge);

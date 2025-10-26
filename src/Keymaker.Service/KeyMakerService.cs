@@ -10,6 +10,7 @@ using Keymaker.Service.Store;
 namespace Keymaker.Service;
 
 // TODO lifecycle management, docker kill signal, docker health, fluent validation
+// TODO toggle api, ui, swagger ...
 
 public sealed class KeyMakerService : IKeymakerService
 {
@@ -58,6 +59,11 @@ public sealed class KeyMakerService : IKeymakerService
     public Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
         return _storeService.GetMostRecentCertificateInfoAsync();
+    }
+
+    public Task<ChallengeInfo> GetChallengeInfoAsync()
+    {
+        return Task.FromResult(ChallengeInfo.Empty);
     }
 
     private void StartChallenge(CancellationToken token)

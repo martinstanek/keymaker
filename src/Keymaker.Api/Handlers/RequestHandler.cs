@@ -43,4 +43,11 @@ public sealed class RequestHandler
 
         return Results.Ok(cert);
     }
+
+    public async Task<IResult> GetChallengeInfoAsync()
+    {
+        var info = await _keymakerService.GetChallengeInfoAsync();
+
+        return Results.Ok(info);
+    }
 }

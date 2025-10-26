@@ -6,7 +6,7 @@ using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.AddEdgeMqClient();
+builder.AddKeymakerClient();
 builder.Services.AddMudServices();
 builder.Services.AddEventingServices();
 builder.RootComponents.Add<App>("#app");

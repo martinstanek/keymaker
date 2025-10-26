@@ -24,6 +24,9 @@ public static class WebApplicationExtensions
         api.MapGet("/challenge/status", ( [FromServices] RequestHandler handler) => handler.GetChallengeStatus())
            .Produces<ChallengeStatus>();
 
+        api.MapGet("/challenge/info", ( [FromServices] RequestHandler handler) => handler.GetChallengeInfoAsync())
+           .Produces<ChallengeInfo>();
+
         api.MapGet("/certificate", async ([FromServices] RequestHandler handler) => await handler.GetMostRecentCertificateInfoAsync())
            .Produces<CertificateInfo>();
 

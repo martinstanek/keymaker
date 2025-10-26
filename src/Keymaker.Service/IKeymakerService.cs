@@ -13,4 +13,6 @@ public interface IKeymakerService
     ChallengeStatus GetCurrentRequestStatus();
 
     Task<CertificateInfo> GetMostRecentCertificateInfoAsync();
+
+    Task<ChallengeInfo> GetChallengeInfoAsync();
 }
