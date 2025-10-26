@@ -1,0 +1,32 @@
+<MudCard Style="margin-bottom: 10px">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Certificate Name</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid Justify="Justify.FlexEnd">
+            <MudItem xs="6">
+                <ValueLabel Label="Challenge mode:" Value="DNS"/>
+                <ValueLabel Label="DNS mode:" Value="Azure DNS" />
+                <ValueLabel Label="Store mode:" Value="Azure KeyVault" />
+                <ValueLabel Label="KeyVault name:" Value="awitec-wildcard-keymaker" />
+                <ValueLabel Label="Domain" Value="*.awitec.net" />
+                <ValueLabel Label="Requester" Value="info@awitec.net" />
+                <ValueLabel Label="Organization:" Value="Awitec HQ, Zürich, Switzerland" />
+            </MudItem>
+            <MudItem xs="6">
+                <ValueLabel Label="Obtained:" Value="2025.10.01"/>
+                <ValueLabel Label="Expiry:" Value="2026.01.01" />
+                <ValueLabel Label="Next renewal:" Value="2025.11.01" />
+                <ValueLabel Label="Issuer:" Value="Let's Encrypt" />
+                <ValueLabel Label="Autorenewal:" Value="Yes" />
+                <ValueLabel Label="Renew every (days):" Value="20" />
+                <ValueLabel Label="Keymaker state:" Value="Idle" />
+            </MudItem>
+        </MudGrid>
+        <div style="margin-top: 15px; display: flex; justify-content: center" >
+            <MudButton Variant="Variant.Filled" Color="Color.Primary">request</MudButton>
+        </div>
+    </MudCardContent>
+</MudCard>
