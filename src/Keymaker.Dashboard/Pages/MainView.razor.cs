@@ -11,8 +11,8 @@ public partial class MainView
         _timer = new Timer(
             callback: async void (_) => await OnTimerAsync(),
             state: null,
-            dueTime: TimeSpan.FromSeconds(1),
-            period: TimeSpan.FromSeconds(2));
+            dueTime: TimeSpan.FromSeconds(5),
+            period: TimeSpan.FromSeconds(7));
 
         return Task.CompletedTask;
     }

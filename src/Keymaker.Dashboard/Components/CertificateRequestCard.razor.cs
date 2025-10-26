@@ -12,6 +12,13 @@ public partial class CertificateRequestCard
     {
         base.OnInitialized();
 
-        Eventing.OnChallengeInfo += (_, info) => { ChallengeInfo = info; };
+        Eventing.OnChallengeInfo += EventingOnOnChallengeInfo;
+    }
+
+    private async void EventingOnOnChallengeInfo(object? sender, ChallengeInfo e)
+    {
+        ChallengeInfo = e;
+
+        await InvokeAsync(StateHasChanged);
     }
 }
