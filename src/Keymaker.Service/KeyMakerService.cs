@@ -61,16 +61,23 @@ public sealed class KeyMakerService : IKeymakerService
         return _storeService.GetMostRecentCertificateInfoAsync();
     }
 
-    public Task<ChallengeInfo> GetChallengeInfoAsync()
+    public async Task<ChallengeInfo> GetChallengeInfoAsync()
     {
+        var lastCert = await GetMostRecentCertificateInfoAsync();
         var info = ChallengeInfo.Empty with
         {
             Contact = _certificateParameters.Contact,
             CertificateName = _certificateParameters.CertificateName,
-            Domain = _certificateParameters.Domain
+            Domain = _certificateParameters.Domain,
+            Expiry = lastCert.Expiry,
+            Obtained = lastCert.Obtained,
+            Issuer = lastCert.Issuer,
+            DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
+            Status = _challengeStatus.Status.ToString(),
+            ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString()
         };
 
-        return Task.FromResult(info);
+        return info;
     }
 
     private void StartChallenge(CancellationToken token)
