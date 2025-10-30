@@ -11,7 +11,7 @@ public sealed class CheckerBackgroundService : BackgroundService
     private readonly IKeymakerService _keymakerService;
     private readonly IRenewalChecker _renewalChecker;
     private readonly ILogger<CheckerBackgroundService> _logger;
-    private readonly TimeSpan _period = TimeSpan.FromSeconds(15);
+    private readonly TimeSpan _period = TimeSpan.FromMinutes(10);
 
     public CheckerBackgroundService(IKeymakerService keymakerService, IRenewalChecker renewalChecker, ILogger<CheckerBackgroundService> logger)
     {
@@ -26,9 +26,11 @@ public sealed class CheckerBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
         {
-            _logger.LogDebug("Checking if the challenge should be triggered.");
+            var shouldTrigger = await _renewalChecker.ShouldTriggerChallengeAsync();
 
-            if (await _renewalChecker.ShouldTriggerChallengeAsync())
+            _logger.LogDebug($"Should be the challenge triggered: {shouldTrigger}");
+
+            if (shouldTrigger)
             {
                 _keymakerService.RequestCertificate(stoppingToken);
             }

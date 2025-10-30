@@ -37,6 +37,8 @@ public sealed class CloudFlareDnsService : IDnsService
 
         _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_configuration.DnsChallengeSetDomain}");
 
+        // TODO: delete the previous records
+
         try
         {
             await _dnsClient.Value.Record.Create(

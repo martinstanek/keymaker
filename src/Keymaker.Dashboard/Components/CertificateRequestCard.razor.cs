@@ -1,5 +1,6 @@
 using Keymaker.Model;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Keymaker.Dashboard.Components;
 
@@ -8,11 +9,11 @@ public partial class CertificateRequestCard
     [Parameter]
     public ChallengeInfo ChallengeInfo { get; set; } = ChallengeInfo.Empty;
 
-    public string Obtained => ChallengeInfo.Obtained?.ToShortDateString() ?? string.Empty;
+    private string Obtained => ChallengeInfo.Obtained?.ToShortDateString() ?? "-";
 
-    public string Expiry => ChallengeInfo.Expiry?.ToShortDateString() ?? string.Empty;
+    private string Expiry => ChallengeInfo.Expiry?.ToShortDateString() ?? "-";
 
-    public string NextRenewal => ChallengeInfo.NextRenewal?.ToShortDateString() ?? string.Empty;
+    private string NextRenewal => ChallengeInfo.NextRenewal?.ToShortDateString() ?? "-";
 
     protected override void OnInitialized()
     {
@@ -26,5 +27,10 @@ public partial class CertificateRequestCard
         ChallengeInfo = e;
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnTriggerClick(MouseEventArgs obj)
+    {
+        await Client.TriggerChallengeAsync();
     }
 }
