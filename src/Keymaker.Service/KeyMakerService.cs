@@ -18,6 +18,8 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly ICertStoreService _storeService;
     private readonly CertificateParameters _certificateParameters;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
+    private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
+    private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
 
     private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
 
@@ -25,11 +27,15 @@ public sealed class KeyMakerService : IKeymakerService
         IAcmeService acmeService,
         ICertStoreService storeService,
         KeyMakerConfiguration keyMakerConfiguration,
+        AzureKeyVaultStoreConfiguration azureVaultConfiguration,
+        VolumeStoreConfiguration volumeStoreConfiguration,
         CertificateParameters certificateParameters)
     {
         _acmeService = acmeService;
         _storeService = storeService;
         _keyMakerConfiguration = keyMakerConfiguration;
+        _azureVaultConfiguration = azureVaultConfiguration;
+        _volumeStoreConfiguration = volumeStoreConfiguration;
         _certificateParameters = certificateParameters;
 
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
@@ -64,18 +70,23 @@ public sealed class KeyMakerService : IKeymakerService
     public async Task<ChallengeInfo> GetChallengeInfoAsync()
     {
         var lastCert = await GetMostRecentCertificateInfoAsync();
-        var info = ChallengeInfo.Empty with
+        var info = new ChallengeInfo
         {
             Contact = _certificateParameters.Contact,
             CertificateName = _certificateParameters.CertificateName,
             Domain = _certificateParameters.Domain,
-            Expiry = lastCert.Expiry,
-            Obtained = lastCert.Obtained,
-            Issuer = lastCert.Issuer,
             DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
             Status = _challengeStatus.Status.ToString(),
             ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
-            StoreMode = _keyMakerConfiguration.StorageMode.ToString()
+            StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
+            IsAutoRenewalEnabled = false,
+            RenewEveryDay = 10,
+            Expiry = lastCert.Expiry,
+            Obtained = lastCert.Obtained,
+            Issuer = lastCert.Issuer,
+            StoreTarget = GetStoreTarget(),
+            NextRenewal = DateTime.Now.AddDays(10),
+            Organization = GetOrganization()
         };
 
         return info;
@@ -115,5 +126,20 @@ public sealed class KeyMakerService : IKeymakerService
         };
 
         return allowedStates.Contains(_challengeStatus.Status);
+    }
+
+    private string GetStoreTarget()
+    {
+        return _keyMakerConfiguration.StorageMode switch
+        {
+            StorageMode.KeyVault => _azureVaultConfiguration.CertificateName,
+            StorageMode.Volume => _volumeStoreConfiguration.ToplevelFolder,
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    private string GetOrganization()
+    {
+        return $"{_certificateParameters.OrganizationUnit}, {_certificateParameters.Organization}, {_certificateParameters.Locality}, {_certificateParameters.State}, {_certificateParameters.CertificateName}";
     }
 }

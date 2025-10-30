@@ -12,15 +12,13 @@ public sealed record ChallengeInfo
 
     public required string Organization { get; init; }
 
-    public required string Requester { get; init; }
-
     public required string ChallengeMode { get; init; }
 
     public required string DnsMode { get; init; }
 
     public required string StoreMode { get; init; }
 
-    public required string KeyVaultName { get; init; }
+    public required string StoreTarget { get; init; }
 
     public required string Issuer { get; init; }
 
@@ -45,9 +43,8 @@ public sealed record ChallengeInfo
         StoreMode = string.Empty,
         Domain = string.Empty,
         Issuer = string.Empty,
-        KeyVaultName = string.Empty,
+        StoreTarget = string.Empty,
         Organization = string.Empty,
-        Requester = string.Empty,
         Status = string.Empty,
         IsAutoRenewalEnabled = false,
         Expiry = null,
