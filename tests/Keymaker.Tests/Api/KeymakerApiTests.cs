@@ -122,7 +122,9 @@ public sealed class KeymakerApiTests
             {
                 ChallengeMode = challengeMode,
                 DnsMode = DnsMode.CloudFlare,
-                StorageMode = StorageMode.Volume
+                StorageMode = StorageMode.Volume,
+                IsAutoRenewalEnabled = false,
+                RenewEveryDays = 0
             };
 
             AcmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));

@@ -9,4 +9,8 @@ public sealed record KeyMakerConfiguration
     public required StorageMode StorageMode { get; init; }
 
     public required ChallengeMode ChallengeMode { get; init; }
+
+    public required bool IsAutoRenewalEnabled { get; init; }
+
+    public required int RenewEveryDays { get; init; }
 }

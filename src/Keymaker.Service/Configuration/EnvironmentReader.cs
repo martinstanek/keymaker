@@ -88,7 +88,9 @@ public static class EnvironmentReader
         {
             DnsMode = Enum.Parse<DnsMode>(Environment.GetEnvironmentVariable("KEYMAKER_DNSMODE") ?? nameof(DnsMode.CloudFlare)),
             StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),
-            ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http))
+            ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http)),
+            IsAutoRenewalEnabled = bool.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_AUTORENEW"), out var autoRenew) && autoRenew,
+            RenewEveryDays = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_RENEWEVERYDAYS"), out var renewEveryDays) ? renewEveryDays : 0
         };
 
         return result;

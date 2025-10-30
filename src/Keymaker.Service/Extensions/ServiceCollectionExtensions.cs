@@ -5,6 +5,7 @@ using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Http;
+using Keymaker.Service.Background;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
@@ -22,6 +23,14 @@ public static class ServiceCollectionExtensions
         var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
         var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
         var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
+
+        if (keyMakerConfig.IsAutoRenewalEnabled)
+        {
+            services
+                .AddSingleton<IChecker, Checker>()
+                .AddSingleton<CheckerBackgroundService>()
+                .AddHostedService(sp => sp.GetRequiredService<CheckerBackgroundService>());
+        }
 
         return services
             .AddDns(keyMakerConfig.DnsMode)
