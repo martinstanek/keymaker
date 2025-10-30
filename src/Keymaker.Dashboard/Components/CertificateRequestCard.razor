@@ -18,9 +18,9 @@
                 <ValueLabel Label="Organization:" Value=@ChallengeInfo.Organization />
             </MudItem>
             <MudItem xs="6">
-                <ValueLabel Label="Obtained:" Value=@ChallengeInfo.Obtained?.ToShortDateString()/>
-                <ValueLabel Label="Expiry:" Value=@ChallengeInfo.Expiry?.ToShortDateString() />
-                <ValueLabel Label="Next renewal:" Value=@ChallengeInfo.NextRenewal?.ToShortDateString()/>
+                <ValueLabel Label="Obtained:" Value=@Obtained/>
+                <ValueLabel Label="Expiry:" Value=@Expiry />
+                <ValueLabel Label="Next renewal:" Value=@NextRenewal/>
                 <ValueLabel Label="Issuer:" Value=@ChallengeInfo.Issuer />
                 <ValueLabel Label="Autorenewal:" Value=@ChallengeInfo.IsAutoRenewalEnabled.ToString() />
                 <ValueLabel Label="Renew every (days):" Value=@ChallengeInfo.RenewEveryDay.ToString() />

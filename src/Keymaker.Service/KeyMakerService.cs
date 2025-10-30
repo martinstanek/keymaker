@@ -70,6 +70,7 @@ public sealed class KeyMakerService : IKeymakerService
     public async Task<ChallengeInfo> GetChallengeInfoAsync()
     {
         var lastCert = await GetMostRecentCertificateInfoAsync();
+
         var info = new ChallengeInfo
         {
             Contact = _certificateParameters.Contact,
@@ -81,9 +82,9 @@ public sealed class KeyMakerService : IKeymakerService
             StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
             IsAutoRenewalEnabled = _keyMakerConfiguration.IsAutoRenewalEnabled,
             RenewEveryDay = _keyMakerConfiguration.RenewEveryDays,
-            NextRenewal = lastCert.IsEmpty() ? default : lastCert.Obtained.AddDays(_keyMakerConfiguration.RenewEveryDays),
-            Expiry = lastCert.IsEmpty() ? default : lastCert.Expiry,
-            Obtained = lastCert.IsEmpty() ? default : lastCert.Obtained,
+            NextRenewal = lastCert.IsEmpty() ? null : lastCert.Obtained.AddDays(_keyMakerConfiguration.RenewEveryDays),
+            Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,
+            Obtained = lastCert.IsEmpty() ? null : lastCert.Obtained,
             Issuer = lastCert.Issuer,
             StoreTarget = GetStoreTarget(),
             Organization = GetOrganization()

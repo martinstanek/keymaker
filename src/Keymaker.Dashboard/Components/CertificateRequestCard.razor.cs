@@ -8,6 +8,12 @@ public partial class CertificateRequestCard
     [Parameter]
     public ChallengeInfo ChallengeInfo { get; set; } = ChallengeInfo.Empty;
 
+    public string Obtained => ChallengeInfo.Obtained?.ToShortDateString() ?? string.Empty;
+
+    public string Expiry => ChallengeInfo.Expiry?.ToShortDateString() ?? string.Empty;
+
+    public string NextRenewal => ChallengeInfo.NextRenewal?.ToShortDateString() ?? string.Empty;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
