@@ -81,11 +81,11 @@ public sealed class KeyMakerService : IKeymakerService
             StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
             IsAutoRenewalEnabled = _keyMakerConfiguration.IsAutoRenewalEnabled,
             RenewEveryDay = _keyMakerConfiguration.RenewEveryDays,
-            Expiry = lastCert.Expiry,
-            Obtained = lastCert.Obtained,
+            NextRenewal = lastCert.IsEmpty() ? default : lastCert.Obtained.AddDays(_keyMakerConfiguration.RenewEveryDays),
+            Expiry = lastCert.IsEmpty() ? default : lastCert.Expiry,
+            Obtained = lastCert.IsEmpty() ? default : lastCert.Obtained,
             Issuer = lastCert.Issuer,
             StoreTarget = GetStoreTarget(),
-            NextRenewal = DateTime.Now.AddDays(10),
             Organization = GetOrganization()
         };
 
