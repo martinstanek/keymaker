@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
         if (keyMakerConfig.IsAutoRenewalEnabled)
         {
             services
-                .AddSingleton<IChecker, Checker>()
+                .AddSingleton<IRenewalChecker, RenewalChecker>()
                 .AddSingleton<CheckerBackgroundService>()
                 .AddHostedService(sp => sp.GetRequiredService<CheckerBackgroundService>());
         }

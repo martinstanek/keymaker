@@ -76,7 +76,7 @@ public static class EnvironmentReader
     {
         var result = new VolumeStoreConfiguration
         {
-            ToplevelFolder = Environment.GetEnvironmentVariable("KEYMAKER_VSTOPLEVEL") ?? string.Empty
+            ToplevelFolder = Environment.GetEnvironmentVariable("KEYMAKER_FOLDER") ?? string.Empty
         };
 
         return result;

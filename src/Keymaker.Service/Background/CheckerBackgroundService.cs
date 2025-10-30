@@ -9,14 +9,14 @@ namespace Keymaker.Service.Background;
 public sealed class CheckerBackgroundService : BackgroundService
 {
     private readonly IKeymakerService _keymakerService;
-    private readonly IChecker _checker;
+    private readonly IRenewalChecker _renewalChecker;
     private readonly ILogger<CheckerBackgroundService> _logger;
     private readonly TimeSpan _period = TimeSpan.FromSeconds(15);
 
-    public CheckerBackgroundService(IKeymakerService keymakerService, IChecker checker, ILogger<CheckerBackgroundService> logger)
+    public CheckerBackgroundService(IKeymakerService keymakerService, IRenewalChecker renewalChecker, ILogger<CheckerBackgroundService> logger)
     {
         _keymakerService = keymakerService;
-        _checker = checker;
+        _renewalChecker = renewalChecker;
         _logger = logger;
     }
 
@@ -28,7 +28,7 @@ public sealed class CheckerBackgroundService : BackgroundService
         {
             _logger.LogDebug("Checking if the challenge should be triggered.");
 
-            if (await _checker.ShouldTriggerChallengeAsync())
+            if (await _renewalChecker.ShouldTriggerChallengeAsync())
             {
                 _keymakerService.RequestCertificate(stoppingToken);
             }

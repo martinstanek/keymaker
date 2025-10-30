@@ -4,12 +4,12 @@ using Keymaker.Service.Configuration;
 
 namespace Keymaker.Service.Background;
 
-public sealed class Checker : IChecker
+public sealed class RenewalChecker : IRenewalChecker
 {
     private readonly IKeymakerService _keymakerService;
     private readonly KeyMakerConfiguration _configuration;
 
-    public Checker(IKeymakerService keymakerService, KeyMakerConfiguration configuration)
+    public RenewalChecker(IKeymakerService keymakerService, KeyMakerConfiguration configuration)
     {
         _keymakerService = keymakerService;
         _configuration = configuration;
