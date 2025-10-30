@@ -140,6 +140,6 @@ public sealed class KeyMakerService : IKeymakerService
 
     private string GetOrganization()
     {
-        return $"{_certificateParameters.OrganizationUnit}, {_certificateParameters.Organization}, {_certificateParameters.Locality}, {_certificateParameters.State}, {_certificateParameters.CertificateName}";
+        return $"{_certificateParameters.OrganizationUnit}, {_certificateParameters.Organization}, {_certificateParameters.Locality}, {_certificateParameters.State}, {_certificateParameters.CountryName}";
     }
 }
