@@ -13,4 +13,6 @@ public sealed record KeyMakerConfiguration
     public required bool IsAutoRenewalEnabled { get; init; }
 
     public required int RenewEveryHours { get; init; }
+
+    public required int CheckForExpirationEveryMinutes { get; init; }
 }

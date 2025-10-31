@@ -117,11 +117,6 @@ public sealed class KeyMakerService : IKeymakerService
     private void OnNextChallengeChecked(object? sender, NextChallenge e)
     {
         _nextChallenge = e;
-
-        if (_nextChallenge.ShouldTrigger)
-        {
-            RequestCertificate(CancellationToken.None);
-        }
     }
 
     private void SetState(CertificateRequestStatus status)

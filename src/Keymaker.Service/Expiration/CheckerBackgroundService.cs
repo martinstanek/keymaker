@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Keymaker.Service.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -8,14 +9,21 @@ namespace Keymaker.Service.Expiration;
 
 public sealed class CheckerBackgroundService : BackgroundService
 {
+    private readonly IKeymakerService _keymakerService;
     private readonly IRenewalChecker _renewalChecker;
     private readonly ILogger<CheckerBackgroundService> _logger;
-    private readonly TimeSpan _period = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _period;
 
-    public CheckerBackgroundService(IRenewalChecker renewalChecker, ILogger<CheckerBackgroundService> logger)
+    public CheckerBackgroundService(
+        IKeymakerService keymakerService,
+        IRenewalChecker renewalChecker,
+        KeyMakerConfiguration configuration,
+        ILogger<CheckerBackgroundService> logger)
     {
+        _keymakerService = keymakerService;
         _renewalChecker = renewalChecker;
         _logger = logger;
+        _period = TimeSpan.FromMinutes(configuration.CheckForExpirationEveryMinutes);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,6 +35,11 @@ public sealed class CheckerBackgroundService : BackgroundService
             var nextChallenge = await _renewalChecker.ShouldTriggerChallengeAsync();
 
             _logger.LogInformation($"Should be the challenge triggered: {nextChallenge}");
+
+            if (nextChallenge.ShouldTrigger)
+            {
+                _keymakerService.RequestCertificate(stoppingToken);
+            }
         }
     }
 }

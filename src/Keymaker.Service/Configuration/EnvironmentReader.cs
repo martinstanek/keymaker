@@ -90,7 +90,8 @@ public static class EnvironmentReader
             StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),
             ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http)),
             IsAutoRenewalEnabled = bool.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_AUTORENEW"), out var autoRenew) && autoRenew,
-            RenewEveryHours = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_RENEWEVERYHOURS"), out var renewEveryHours) ? renewEveryHours : 0
+            RenewEveryHours = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_RENEWEVERYHOURS"), out var renewEveryHours) ? renewEveryHours : 240,
+            CheckForExpirationEveryMinutes = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_CHECKEVERYMINUTES"), out var checkEveryMinutes) ? checkEveryMinutes : 10
         };
 
         return result;
