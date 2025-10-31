@@ -8,6 +8,7 @@ using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
+using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
 
@@ -21,6 +22,7 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly IWebHookService _webHookService;
     private readonly IRenewalChecker _checker;
     private readonly CertificateParameters _certificateParameters;
+    private readonly ILogger<KeyMakerService> _logger;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
     private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
     private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
@@ -36,7 +38,8 @@ public sealed class KeyMakerService : IKeymakerService
         KeyMakerConfiguration keyMakerConfiguration,
         AzureKeyVaultStoreConfiguration azureVaultConfiguration,
         VolumeStoreConfiguration volumeStoreConfiguration,
-        CertificateParameters certificateParameters)
+        CertificateParameters certificateParameters,
+        ILogger<KeyMakerService> logger)
     {
         _acmeService = acmeService;
         _storeService = storeService;
@@ -46,6 +49,7 @@ public sealed class KeyMakerService : IKeymakerService
         _azureVaultConfiguration = azureVaultConfiguration;
         _volumeStoreConfiguration = volumeStoreConfiguration;
         _certificateParameters = certificateParameters;
+        _logger = logger;
 
         _checker.NextChallengeChecked += OnNextChallengeChecked;
         _acmeService.Succeeded += OnSuccess;
@@ -57,6 +61,7 @@ public sealed class KeyMakerService : IKeymakerService
     {
         if (!CanProcessRequest())
         {
+            _logger.LogWarning("Can not process request.");
             return false;
         }
 
@@ -116,6 +121,8 @@ public sealed class KeyMakerService : IKeymakerService
             Status = CertificateRequestStatus.Started,
             Requested = DateTime.UtcNow
         };
+
+        _logger.LogInformation($"Challenge started: {_keyMakerConfiguration.ChallengeMode}");
     }
 
     private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
