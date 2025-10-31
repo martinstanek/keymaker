@@ -126,7 +126,7 @@ public sealed class KeyMakerService : IKeymakerService
 
         if (_keyMakerConfiguration.IsWebHookEnabled)
         {
-            await _webHookService.TriggerWebHookAsync(e.FullChainPem, e.PrivateKeyPem);
+            await _webHookService.TriggerWebHookAsync(e);
         }
     }
 

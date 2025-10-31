@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Store;
 using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service.Integrations;
@@ -18,24 +19,15 @@ public sealed class WebHookService : IWebHookService
         _logger = logger;
     }
 
-    public async Task TriggerWebHookAsync(string fullChain, string privateKey)
+    public async Task TriggerWebHookAsync(CertificatePersistenceInfo persistenceInfo)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(fullChain);
-        ArgumentException.ThrowIfNullOrWhiteSpace(privateKey);
-
-        var payload = new WebHookPayload
-        {
-            FullChain = fullChain,
-            PrivateKey = privateKey
-        };
-
         using var httpClient = new HttpClient();
 
         try
         {
             httpClient.BaseAddress = new Uri(_configuration.WebHookUrl);
 
-            await httpClient.PostAsJsonAsync(string.Empty, payload);
+            await httpClient.PostAsJsonAsync(string.Empty, persistenceInfo);
         }
         catch (Exception e)
         {

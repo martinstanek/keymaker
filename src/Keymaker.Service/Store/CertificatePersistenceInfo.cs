@@ -12,6 +12,10 @@ public sealed record CertificatePersistenceInfo
 
     public required string PrivateKeyPem { get; init; }
 
+    public required string Base64FullChainPem { get; init; }
+
+    public required string Base64PrivateKeyPem { get; init; }
+
     public required string Base64Pfx { get; init; }
 
     public required string Password { get; init; }

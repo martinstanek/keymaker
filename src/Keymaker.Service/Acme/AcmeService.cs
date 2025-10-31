@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -136,9 +137,11 @@ public sealed class AcmeService : IAcmeService
             Obtained = DateTime.Now,
             Domain = cert.Domain,
             Expiry = cert.Expiry,
-            Base64Pfx = cert.Base64,
             FullChainPem = cert.Pem,
             PrivateKeyPem = cert.PemKey,
+            Base64Pfx = cert.Base64,
+            Base64FullChainPem = Convert.ToBase64String(Encoding.ASCII.GetBytes(cert.Pem)),
+            Base64PrivateKeyPem = Convert.ToBase64String(Encoding.ASCII.GetBytes(cert.PemKey)),
             Password = certificateParameters.Password
         };
 
