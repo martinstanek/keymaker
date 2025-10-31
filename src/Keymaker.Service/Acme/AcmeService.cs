@@ -61,11 +61,11 @@ public sealed class AcmeService : IAcmeService
 
     private async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
     {
-        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
+        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
 
         var (acme, order) = await PlaceOrderAsync(certificateParameters);
 
-        _logger.LogDebug($"Order negotiated {order.Location}");
+        _logger.LogInformation($"Order negotiated {order.Location}");
 
         DnsChallengeTriggered.Invoke(this, EventArgs.Empty);
 
@@ -75,11 +75,11 @@ public sealed class AcmeService : IAcmeService
 
     private async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
     {
-        _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
+        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
 
         var (acme, order) = await PlaceOrderAsync(certificateParameters);
 
-        _logger.LogDebug($"Order negotiated {order.Location}");
+        _logger.LogInformation($"Order negotiated {order.Location}");
 
         await PerformChallengeAsync(acme, order, isDnsChallenge: false, cancellationToken);
 
@@ -113,7 +113,7 @@ public sealed class AcmeService : IAcmeService
 
         var validatedChallenge = await challenge.Validate();
 
-        _logger.LogDebug($"Validating challenge: {validatedChallenge.Type}");
+        _logger.LogInformation($"Validating challenge: {validatedChallenge.Type}");
     }
 
     private async Task WaitForHttpCallbackAsync(CancellationToken cancellationToken)
@@ -128,7 +128,7 @@ public sealed class AcmeService : IAcmeService
 
     private async Task FinaliseOrderAsync(IOrderContext order, CertificateParameters certificateParameters)
     {
-        _logger.LogDebug("Generating the certificate");
+        _logger.LogInformation("Generating the certificate");
 
         var cert = await _certProducer.BuildCertificateAsync(order, certificateParameters);
         var certPersistenceInfo = new CertificatePersistenceInfo
@@ -185,7 +185,7 @@ public sealed class AcmeService : IAcmeService
 
             var preparedKey = await _dnsService.GetTxtEntryAsync();
 
-            _logger.LogDebug($"Waiting for the DNS propagation. Expected value: {dnsTxt}, current value: {preparedKey}");
+            _logger.LogInformation($"Waiting for the DNS propagation. Expected value: {dnsTxt}, current value: {preparedKey}");
 
             if (preparedKey.Contains(dnsTxt))
             {
