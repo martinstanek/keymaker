@@ -18,6 +18,7 @@ public static class LoggingBuilderExtensions
             .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
             .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Cors", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Http.Result", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Mvc.StatusCodeResult", LogLevel.Warning)

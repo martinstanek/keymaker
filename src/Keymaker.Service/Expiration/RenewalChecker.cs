@@ -30,7 +30,7 @@ public sealed class RenewalChecker : IRenewalChecker
             : new NextChallenge
             {
                 HoursLeft = Convert.ToInt32(Math.Round(difference)),
-                NextNegotiation = DateTime.Now.AddHours(difference),
+                NextNegotiation = certInfo.Obtained.AddHours(_configuration.RenewEveryHours),
                 ShouldTrigger = difference > _configuration.RenewEveryHours
             };
 
