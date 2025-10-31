@@ -59,7 +59,7 @@ public sealed class AcmeService : IAcmeService
         };
     }
 
-    private async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters,CancellationToken cancellationToken)
+    private async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting the certificate for {certificateParameters.Domain}");
 

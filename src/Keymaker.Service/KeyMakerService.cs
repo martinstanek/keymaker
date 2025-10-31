@@ -61,7 +61,7 @@ public sealed class KeyMakerService : IKeymakerService
     {
         if (!CanProcessRequest())
         {
-            _logger.LogWarning("Can not process request.");
+            _logger.LogWarning($"Can not process the request, state is {_challengeStatus.Status}");
             return false;
         }
 

@@ -38,7 +38,7 @@ public sealed class CheckerBackgroundService : BackgroundService
 
             if (nextChallenge.ShouldTrigger)
             {
-                _keymakerService.RequestCertificate(stoppingToken);
+                _keymakerService.RequestCertificate(CancellationToken.None);
             }
         }
     }
