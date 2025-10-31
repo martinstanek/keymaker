@@ -1,8 +1,11 @@
+using System;
 using System.Threading.Tasks;
 
 namespace Keymaker.Service.Expiration;
 
 public interface IRenewalChecker
 {
-    Task<bool> ShouldTriggerChallengeAsync();
+    Task<NextChallenge> ShouldTriggerChallengeAsync();
+
+    event EventHandler<NextChallenge> OnNextChallengeCheck;
 }

@@ -6,6 +6,7 @@ using Keymaker.Service.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.SetDefaultLevels();
 builder.Services.AddCors();
 builder.Services.ConfigureHandlers();
 builder.Services.ConfigureSerialization();

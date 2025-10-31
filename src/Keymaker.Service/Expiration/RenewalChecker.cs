@@ -15,17 +15,28 @@ public sealed class RenewalChecker : IRenewalChecker
         _configuration = configuration;
     }
 
-    public async Task<bool> ShouldTriggerChallengeAsync()
+    public async Task<NextChallenge> ShouldTriggerChallengeAsync()
     {
         var certInfo = await _keymakerService.GetMostRecentCertificateInfoAsync();
-
-        if (certInfo.IsEmpty())
-        {
-            return true;
-        }
-
         var difference = DateTime.Now.Subtract(certInfo.Obtained).TotalHours;
+        var nextChallenge = certInfo.IsEmpty()
+            ? new NextChallenge
+            {
+                HoursLeft = 0,
+                NextNegotiation = DateTime.Now,
+                ShouldTrigger = true
+            }
+            : new NextChallenge
+            {
+                HoursLeft = Convert.ToInt32(Math.Round(difference)),
+                NextNegotiation = DateTime.Now.AddHours(difference),
+                ShouldTrigger = difference > _configuration.RenewEveryHours
+            };
 
-        return difference > _configuration.RenewEveryHours;
+        OnNextChallengeCheck.Invoke(this, nextChallenge);
+
+        return nextChallenge;
     }
+
+    public event EventHandler<NextChallenge> OnNextChallengeCheck = (_, _) => { };
 }

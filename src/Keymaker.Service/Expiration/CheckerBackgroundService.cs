@@ -26,11 +26,11 @@ public sealed class CheckerBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
         {
-            var shouldTrigger = await _renewalChecker.ShouldTriggerChallengeAsync();
+            var nextChallenge = await _renewalChecker.ShouldTriggerChallengeAsync();
 
-            _logger.LogDebug($"Should be the challenge triggered: {shouldTrigger}");
+            _logger.LogInformation($"Should be the challenge triggered: {nextChallenge}");
 
-            if (shouldTrigger)
+            if (nextChallenge.ShouldTrigger)
             {
                 _keymakerService.RequestCertificate(stoppingToken);
             }

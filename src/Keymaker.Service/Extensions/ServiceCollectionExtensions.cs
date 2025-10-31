@@ -27,7 +27,6 @@ public static class ServiceCollectionExtensions
         if (keyMakerConfig.IsAutoRenewalEnabled)
         {
             services
-                .AddSingleton<IRenewalChecker, RenewalChecker>()
                 .AddSingleton<CheckerBackgroundService>()
                 .AddHostedService(sp => sp.GetRequiredService<CheckerBackgroundService>());
         }
@@ -42,6 +41,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton(azureDnsServiceConfig)
             .AddSingleton(azureKeyVaultStoreConfig)
             .AddSingleton(cloudFlareDnsServiceConfig)
+            .AddSingleton<IRenewalChecker, RenewalChecker>()
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()
             .AddSingleton<IDnsProvider, DnsProvider>()

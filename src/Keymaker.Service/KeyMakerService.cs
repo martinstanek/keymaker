@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Expiration;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
@@ -16,16 +17,19 @@ public sealed class KeyMakerService : IKeymakerService
 {
     private readonly IAcmeService _acmeService;
     private readonly ICertStoreService _storeService;
+    private readonly IRenewalChecker _checker;
     private readonly CertificateParameters _certificateParameters;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
     private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
     private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
 
     private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
+    private NextChallenge _nextChallenge = NextChallenge.Empty;
 
     public KeyMakerService(
         IAcmeService acmeService,
         ICertStoreService storeService,
+        IRenewalChecker checker,
         KeyMakerConfiguration keyMakerConfiguration,
         AzureKeyVaultStoreConfiguration azureVaultConfiguration,
         VolumeStoreConfiguration volumeStoreConfiguration,
@@ -33,11 +37,13 @@ public sealed class KeyMakerService : IKeymakerService
     {
         _acmeService = acmeService;
         _storeService = storeService;
+        _checker = checker;
         _keyMakerConfiguration = keyMakerConfiguration;
         _azureVaultConfiguration = azureVaultConfiguration;
         _volumeStoreConfiguration = volumeStoreConfiguration;
         _certificateParameters = certificateParameters;
 
+        _checker.OnNextChallengeCheck += (_, challenge) => { _nextChallenge = challenge; };
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
         _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
@@ -82,7 +88,7 @@ public sealed class KeyMakerService : IKeymakerService
             StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
             IsAutoRenewalEnabled = _keyMakerConfiguration.IsAutoRenewalEnabled,
             RenewEveryHours = _keyMakerConfiguration.RenewEveryHours,
-            NextRenewal = lastCert.IsEmpty() ? null : lastCert.Obtained.AddDays(_keyMakerConfiguration.RenewEveryHours),
+            NextRenewal = _nextChallenge.IsEmpty() ? null : _nextChallenge.NextNegotiation,
             Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,
             Obtained = lastCert.IsEmpty() ? null : lastCert.Obtained,
             Issuer = lastCert.Issuer,
