@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Keymaker.Service.Configuration;
 
-namespace Keymaker.Service.Background;
+namespace Keymaker.Service.Expiration;
 
 public sealed class RenewalChecker : IRenewalChecker
 {
@@ -24,8 +24,8 @@ public sealed class RenewalChecker : IRenewalChecker
             return true;
         }
 
-        var difference = DateTime.Now.Subtract(certInfo.Obtained).TotalDays;
+        var difference = DateTime.Now.Subtract(certInfo.Obtained).TotalHours;
 
-        return difference > _configuration.RenewEveryDays;
+        return difference > _configuration.RenewEveryHours;
     }
 }

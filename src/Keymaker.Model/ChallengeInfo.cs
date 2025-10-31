@@ -26,7 +26,7 @@ public sealed record ChallengeInfo
 
     public required bool IsAutoRenewalEnabled { get; init; }
 
-    public required int RenewEveryDay { get; init; }
+    public required int RenewEveryHours { get; init; }
 
     public required DateTime? Obtained { get; init; }
 
@@ -50,6 +50,6 @@ public sealed record ChallengeInfo
         Expiry = null,
         NextRenewal = null,
         Obtained = null,
-        RenewEveryDay = 0
+        RenewEveryHours = 0
     };
 }

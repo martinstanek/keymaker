@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Keymaker.Service.Background;
+namespace Keymaker.Service.Expiration;
 
 public interface IRenewalChecker
 {

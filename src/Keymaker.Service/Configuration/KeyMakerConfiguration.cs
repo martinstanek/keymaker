@@ -12,5 +12,5 @@ public sealed record KeyMakerConfiguration
 
     public required bool IsAutoRenewalEnabled { get; init; }
 
-    public required int RenewEveryDays { get; init; }
+    public required int RenewEveryHours { get; init; }
 }
