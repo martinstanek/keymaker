@@ -124,6 +124,8 @@ public sealed class KeymakerApiTests
                 DnsMode = DnsMode.CloudFlare,
                 StorageMode = StorageMode.Volume,
                 IsAutoRenewalEnabled = false,
+                IsWebHookEnabled = false,
+                WebHookUrl = string.Empty,
                 RenewEveryHours = 0,
                 CheckForExpirationEveryMinutes = 0
             };

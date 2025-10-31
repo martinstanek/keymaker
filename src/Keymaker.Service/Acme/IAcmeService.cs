@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
+using Keymaker.Service.Store;
 
 namespace Keymaker.Service.Acme;
 
@@ -19,5 +20,5 @@ public interface IAcmeService
 
     event EventHandler Failed;
 
-    event EventHandler Succeeded;
+    event EventHandler<CertificatePersistenceInfo> Succeeded;
 }

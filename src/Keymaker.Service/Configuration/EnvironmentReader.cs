@@ -90,8 +90,10 @@ public static class EnvironmentReader
             StorageMode = Enum.Parse<StorageMode>(Environment.GetEnvironmentVariable("KEYMAKER_STORAGEMODE") ?? nameof(StorageMode.Volume)),
             ChallengeMode = Enum.Parse<ChallengeMode>(Environment.GetEnvironmentVariable("KEYMAKER_CHALLENGEMODE") ?? nameof(ChallengeMode.Http)),
             IsAutoRenewalEnabled = bool.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_AUTORENEW"), out var autoRenew) && autoRenew,
+            IsWebHookEnabled = bool.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_WEBHOOK"), out var webhook) && webhook,
+            WebHookUrl = Environment.GetEnvironmentVariable("KEYMAKER_WEBHOOKURL") ?? string.Empty,
             RenewEveryHours = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_RENEWEVERYHOURS"), out var renewEveryHours) ? renewEveryHours : 240,
-            CheckForExpirationEveryMinutes = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_CHECKEVERYMINUTES"), out var checkEveryMinutes) ? checkEveryMinutes : 10
+            CheckForExpirationEveryMinutes = int.TryParse(Environment.GetEnvironmentVariable("KEYMAKER_CHECKEVERYMINUTES"), out var checkEveryMinutes) ? checkEveryMinutes : 10,
         };
 
         return result;

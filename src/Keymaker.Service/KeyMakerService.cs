@@ -6,6 +6,7 @@ using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
+using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
@@ -17,6 +18,7 @@ public sealed class KeyMakerService : IKeymakerService
 {
     private readonly IAcmeService _acmeService;
     private readonly ICertStoreService _storeService;
+    private readonly IWebHookService _webHookService;
     private readonly IRenewalChecker _checker;
     private readonly CertificateParameters _certificateParameters;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
@@ -29,6 +31,7 @@ public sealed class KeyMakerService : IKeymakerService
     public KeyMakerService(
         IAcmeService acmeService,
         ICertStoreService storeService,
+        IWebHookService webHookService,
         IRenewalChecker checker,
         KeyMakerConfiguration keyMakerConfiguration,
         AzureKeyVaultStoreConfiguration azureVaultConfiguration,
@@ -37,6 +40,7 @@ public sealed class KeyMakerService : IKeymakerService
     {
         _acmeService = acmeService;
         _storeService = storeService;
+        _webHookService = webHookService;
         _checker = checker;
         _keyMakerConfiguration = keyMakerConfiguration;
         _azureVaultConfiguration = azureVaultConfiguration;
@@ -44,7 +48,7 @@ public sealed class KeyMakerService : IKeymakerService
         _certificateParameters = certificateParameters;
 
         _checker.NextChallengeChecked += OnNextChallengeChecked;
-        _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
+        _acmeService.Succeeded += OnSuccess;
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
         _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
     }
@@ -112,6 +116,18 @@ public sealed class KeyMakerService : IKeymakerService
             Status = CertificateRequestStatus.Started,
             Requested = DateTime.UtcNow
         };
+    }
+
+    private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
+    {
+        await _storeService.PersistCertificatesAsync(e);
+
+        SetState(CertificateRequestStatus.Success);
+
+        if (_keyMakerConfiguration.IsWebHookEnabled)
+        {
+            await _webHookService.TriggerWebHookAsync(e.FullChainPem, e.PrivateKeyPem);
+        }
     }
 
     private void OnNextChallengeChecked(object? sender, NextChallenge e)

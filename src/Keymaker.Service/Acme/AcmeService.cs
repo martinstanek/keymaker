@@ -24,7 +24,6 @@ public sealed class AcmeService : IAcmeService
 
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;
-    private readonly ICertStoreService _certStoreService;
     private readonly ICertProducer _certProducer;
     private readonly IDnsService _dnsService;
     private readonly IDnsProvider _dnsProvider;
@@ -34,7 +33,6 @@ public sealed class AcmeService : IAcmeService
     public AcmeService(
         IAcmeContextFactory acmeContextFactory,
         IAcmeCallback acmeCallback,
-        ICertStoreService certStoreService,
         ICertProducer certProducer,
         IDnsService dnsService,
         IDnsProvider dnsProvider,
@@ -43,7 +41,6 @@ public sealed class AcmeService : IAcmeService
     {
         _acmeContextFactory = acmeContextFactory;
         _acmeCallback = acmeCallback;
-        _certStoreService = certStoreService;
         _certProducer = certProducer;
         _dnsService = dnsService;
         _dnsProvider = dnsProvider;
@@ -145,9 +142,7 @@ public sealed class AcmeService : IAcmeService
             Password = certificateParameters.Password
         };
 
-        await _certStoreService.PersistCertificatesAsync(certPersistenceInfo);
-
-        Succeeded.Invoke(this, EventArgs.Empty);
+        Succeeded.Invoke(this, certPersistenceInfo);
     }
 
     private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)
@@ -210,5 +205,5 @@ public sealed class AcmeService : IAcmeService
 
     public event EventHandler Failed = (_, _) => { };
 
-    public event EventHandler Succeeded = (_, _) => { };
+    public event EventHandler<CertificatePersistenceInfo> Succeeded = (_, _) => { };
 }

@@ -8,6 +8,7 @@ using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Expiration;
+using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service.Extensions;
@@ -39,6 +40,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton(azureDnsServiceConfig)
             .AddSingleton(azureKeyVaultStoreConfig)
             .AddSingleton(cloudFlareDnsServiceConfig)
+            .AddSingleton<IWebHookService, WebHookService>()
             .AddSingleton<IRenewalChecker, RenewalChecker>()
             .AddSingleton<ICertProducer, CertProducer>()
             .AddSingleton<IHttpProvider, HttpProvider>()

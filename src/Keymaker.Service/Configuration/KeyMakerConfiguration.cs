@@ -12,7 +12,13 @@ public sealed record KeyMakerConfiguration
 
     public required bool IsAutoRenewalEnabled { get; init; }
 
+    public required bool IsWebHookEnabled { get; init; }
+
+    public required string WebHookUrl { get; init; }
+
     public required int RenewEveryHours { get; init; }
 
     public required int CheckForExpirationEveryMinutes { get; init; }
+
+
 }
