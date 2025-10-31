@@ -124,7 +124,8 @@ public sealed class KeymakerApiTests
                 DnsMode = DnsMode.CloudFlare,
                 StorageMode = StorageMode.Volume,
                 IsAutoRenewalEnabled = false,
-                RenewEveryHours = 0
+                RenewEveryHours = 0,
+                CheckForExpirationEveryMinutes = 0
             };
 
             AcmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
