@@ -28,6 +28,8 @@ public sealed class WebHookService : IWebHookService
             httpClient.BaseAddress = new Uri(_configuration.WebHookUrl);
 
             await httpClient.PostAsJsonAsync(string.Empty, persistenceInfo);
+
+            _logger.LogInformation($"WebHook executed on: {_configuration.WebHookUrl}");
         }
         catch (Exception e)
         {
