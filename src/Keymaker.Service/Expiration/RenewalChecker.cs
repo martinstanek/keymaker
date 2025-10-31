@@ -1,23 +1,24 @@
 using System;
 using System.Threading.Tasks;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Store;
 
 namespace Keymaker.Service.Expiration;
 
 public sealed class RenewalChecker : IRenewalChecker
 {
-    private readonly IKeymakerService _keymakerService;
+    private readonly ICertStoreService _storeService;
     private readonly KeyMakerConfiguration _configuration;
 
-    public RenewalChecker(IKeymakerService keymakerService, KeyMakerConfiguration configuration)
+    public RenewalChecker(ICertStoreService storeService, KeyMakerConfiguration configuration)
     {
-        _keymakerService = keymakerService;
+        _storeService = storeService;
         _configuration = configuration;
     }
 
     public async Task<NextChallenge> ShouldTriggerChallengeAsync()
     {
-        var certInfo = await _keymakerService.GetMostRecentCertificateInfoAsync();
+        var certInfo = await _storeService.GetMostRecentCertificateInfoAsync();
         var difference = DateTime.Now.Subtract(certInfo.Obtained).TotalHours;
         var nextChallenge = certInfo.IsEmpty()
             ? new NextChallenge
