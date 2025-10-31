@@ -10,7 +10,7 @@ public sealed class CheckerBackgroundService : BackgroundService
 {
     private readonly IRenewalChecker _renewalChecker;
     private readonly ILogger<CheckerBackgroundService> _logger;
-    private readonly TimeSpan _period = TimeSpan.FromMinutes(10);
+    private readonly TimeSpan _period = TimeSpan.FromMinutes(1);
 
     public CheckerBackgroundService(IRenewalChecker renewalChecker, ILogger<CheckerBackgroundService> logger)
     {

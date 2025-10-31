@@ -13,6 +13,20 @@ public static class LoggingBuilderExtensions
             options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
         });
 
-        return builder.SetMinimumLevel(LogLevel.Information);
+        return builder
+            .SetMinimumLevel(LogLevel.Information)
+            .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
+            .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Mvc.StatusCodeResult", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor", LogLevel.Warning)
+            .AddFilter("System.Net.Http.HttpClient.Default.LogicalHandler", LogLevel.Warning)
+            .AddFilter("System.Net.Http.HttpClient.Default.ClientHandler", LogLevel.Warning)
+            .AddFilter("System.Net.Http.HttpClient.StateHolderApiClient.LogicalHandler", LogLevel.Warning)
+            .AddFilter("System.Net.Http.HttpClient.health-checks.ClientHandler", LogLevel.Warning)
+            .AddFilter("System.Net.Http.HttpClient.health-checks.LogicalHandler", LogLevel.Warning)
+            .AddFilter("HealthChecks.UI.Core.HostedService.UIInitializationHostedService", LogLevel.Warning);
     }
 }

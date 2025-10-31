@@ -9,11 +9,11 @@ public partial class CertificateRequestCard
     [Parameter]
     public ChallengeInfo ChallengeInfo { get; set; } = ChallengeInfo.Empty;
 
-    private string Obtained => ChallengeInfo.Obtained?.ToShortDateString() ?? "-";
+    private string Expiry => ChallengeInfo.Expiry?.ToString("yyyy.MM.dd HH:mm:ss") ?? "-";
 
-    private string Expiry => ChallengeInfo.Expiry?.ToShortDateString() ?? "-";
+    private string Obtained => ChallengeInfo.Obtained?.ToString("yyyy.MM.dd HH:mm:ss") ?? "-";
 
-    private string NextRenewal => ChallengeInfo.NextRenewal?.ToShortDateString() ?? "-";
+    private string NextRenewal => ChallengeInfo.NextRenewal?.ToString("yyyy.MM.dd HH:mm:ss") ?? "-";
 
     protected override void OnInitialized()
     {
