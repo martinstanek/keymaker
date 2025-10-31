@@ -33,10 +33,10 @@ public sealed class RenewalChecker : IRenewalChecker
                 ShouldTrigger = difference > _configuration.RenewEveryHours
             };
 
-        OnNextChallengeCheck.Invoke(this, nextChallenge);
+        NextChallengeChecked.Invoke(this, nextChallenge);
 
         return nextChallenge;
     }
 
-    public event EventHandler<NextChallenge> OnNextChallengeCheck = (_, _) => { };
+    public event EventHandler<NextChallenge> NextChallengeChecked = (_, _) => { };
 }

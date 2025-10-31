@@ -43,7 +43,7 @@ public sealed class KeyMakerService : IKeymakerService
         _volumeStoreConfiguration = volumeStoreConfiguration;
         _certificateParameters = certificateParameters;
 
-        _checker.OnNextChallengeCheck += (_, challenge) => { _nextChallenge = challenge; };
+        _checker.NextChallengeChecked += OnNextChallengeChecked;
         _acmeService.Succeeded += (_, _) => { SetState(CertificateRequestStatus.Success); };
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
         _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
@@ -112,6 +112,16 @@ public sealed class KeyMakerService : IKeymakerService
             Status = CertificateRequestStatus.Started,
             Requested = DateTime.UtcNow
         };
+    }
+
+    private void OnNextChallengeChecked(object? sender, NextChallenge e)
+    {
+        _nextChallenge = e;
+
+        if (_nextChallenge.ShouldTrigger)
+        {
+            RequestCertificate(CancellationToken.None);
+        }
     }
 
     private void SetState(CertificateRequestStatus status)

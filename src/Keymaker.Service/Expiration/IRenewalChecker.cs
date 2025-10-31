@@ -7,5 +7,5 @@ public interface IRenewalChecker
 {
     Task<NextChallenge> ShouldTriggerChallengeAsync();
 
-    event EventHandler<NextChallenge> OnNextChallengeCheck;
+    event EventHandler<NextChallenge> NextChallengeChecked;
 }
