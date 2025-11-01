@@ -20,6 +20,7 @@ public sealed class RenewalChecker : IRenewalChecker
     {
         var certInfo = await _storeService.GetMostRecentCertificateInfoAsync();
         var difference = DateTime.Now.Subtract(certInfo.Obtained).TotalHours;
+        var nextNegotiation = certInfo.Obtained.AddHours(_configuration.RenewEveryHours);
         var nextChallenge = certInfo.IsEmpty()
             ? new NextChallenge
             {
@@ -29,8 +30,8 @@ public sealed class RenewalChecker : IRenewalChecker
             }
             : new NextChallenge
             {
-                HoursLeft = Convert.ToInt32(Math.Round(difference)),
-                NextNegotiation = certInfo.Obtained.AddHours(_configuration.RenewEveryHours),
+                HoursLeft = Convert.ToInt32(Math.Round(nextNegotiation.Subtract(DateTime.Now).TotalHours)),
+                NextNegotiation = nextNegotiation,
                 ShouldTrigger = difference >= _configuration.RenewEveryHours
             };
 
