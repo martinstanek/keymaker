@@ -12,9 +12,6 @@ public static class WebApplicationExtensions
     {
         var api = webApplication.MapGroup("/");
 
-        api.MapGet("/", () => "keymaker")
-           .Produces<string>(contentType: "test/plain");
-
         api.MapDelete("/challenge", ([FromServices] RequestHandler handler) => handler.CancelCurrentChallenge())
            .Produces<NoContentResult>();
 
