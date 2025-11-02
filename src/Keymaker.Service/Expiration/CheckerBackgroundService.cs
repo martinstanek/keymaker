@@ -30,7 +30,7 @@ public sealed class CheckerBackgroundService : BackgroundService
     {
         using var timer = new PeriodicTimer(_period);
 
-        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
             var nextChallenge = await _renewalChecker.ShouldTriggerChallengeAsync();
 
@@ -40,6 +40,8 @@ public sealed class CheckerBackgroundService : BackgroundService
             {
                 _keymakerService.RequestCertificate(stoppingToken);
             }
+
+            await timer.WaitForNextTickAsync(stoppingToken);
         }
     }
 }
