@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Keymaker.Api.Logging.Store;
 
 public sealed class InMemoryLoggerStore : IInMemoryLoggerStore
 {
-    private readonly ConcurrentBag<string> _messages = new();
+    private readonly ConcurrentBag<LogMessage> _messages = new();
 
     public IEnumerable<string> GetMessages()
     {
-        return _messages;
+        return _messages.OrderBy(o => o.Timestamp).Select(s => s.ToString());
     }
 
 
@@ -24,10 +25,8 @@ public sealed class InMemoryLoggerStore : IInMemoryLoggerStore
         _messages.Clear();
     }
 
-    public void AddMessage(string message)
+    public void AddMessage(LogMessage message)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(message);
-
         _messages.Add(message);
     }
 }

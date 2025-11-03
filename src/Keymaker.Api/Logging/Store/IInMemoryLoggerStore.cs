@@ -10,5 +10,5 @@ public interface IInMemoryLoggerStore
 
     void Clear();
 
-    void AddMessage(string message);
+    void AddMessage(LogMessage message);
 }

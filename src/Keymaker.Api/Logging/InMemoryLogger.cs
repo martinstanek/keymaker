@@ -31,7 +31,7 @@ public sealed class InMemoryLogger : ILogger
             Category = _name
         };
 
-        _store.AddMessage(logMessage.ToString());
+        _store.AddMessage(logMessage);
     }
 
     public bool IsEnabled(LogLevel logLevel)
