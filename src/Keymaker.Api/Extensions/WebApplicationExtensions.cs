@@ -28,14 +28,14 @@ public static class WebApplicationExtensions
          api.MapGet("/challenge/info", ([FromServices] RequestHandler handler) => handler.GetChallengeInfoAsync())
             .Produces<ChallengeInfo>();
 
-         api.MapGet("/certificate",
-               async ([FromServices] RequestHandler handler) => await handler.GetMostRecentCertificateInfoAsync())
+         api.MapGet("/certificate", async ([FromServices] RequestHandler handler) => await handler.GetMostRecentCertificateInfoAsync())
             .Produces<CertificateInfo>();
       }
 
       if (!conf.IsUiEnabled)
       {
-         api.MapGet("/", Results.NoContent);
+         api.MapGet("/", () => Results.Text("OK"))
+            .Produces<string>(contentType: "text/plain");
       }
 
       if (conf.IsLogConsoleEnabled)
