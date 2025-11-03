@@ -18,7 +18,6 @@ app.UseUi();
 app.UseOpenApiDocs();
 app.UseKeymaker();
 app.UseApiEndpoints();
-app.UseConsoleEndpoints();
 app.UseCors(p => { p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
 app.Run();
 
