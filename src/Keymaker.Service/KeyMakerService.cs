@@ -156,7 +156,7 @@ public sealed class KeyMakerService : IKeymakerService
         {
             CertificateRequestStatus.Failed,
             CertificateRequestStatus.Success,
-            CertificateRequestStatus.TimeOut,
+            CertificateRequestStatus.TimedOut,
             CertificateRequestStatus.Idle
         };
 

@@ -27,6 +27,23 @@ public static class WebApplicationExtensions
         api.MapGet("/certificate", async ([FromServices] RequestHandler handler) => await handler.GetMostRecentCertificateInfoAsync())
            .Produces<CertificateInfo>();
 
+        api.MapGet("/console", ([FromServices] RequestHandler handler) => handler.GetConsole())
+           .Produces<string>(contentType: "text/plain");
+
+        api.MapGet("/console/clear", ([FromServices] RequestHandler handler) => handler.ClearConsole())
+           .Produces<NoContentResult>();
+
         return webApplication;
+    }
+
+    public static WebApplication UseSwaggerApiDoc(this WebApplication app, string apiTitle)
+    {
+       app.UseSwagger();
+       app.UseSwaggerUI(c =>
+       {
+          c.SwaggerEndpoint("/swagger/v1/swagger.json", apiTitle);
+       });
+
+       return app;
     }
 }

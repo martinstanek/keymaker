@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Keymaker.Api.Logging.Store;
 using Microsoft.AspNetCore.Http;
 using Keymaker.Service;
 
@@ -8,10 +9,12 @@ namespace Keymaker.Api.Handlers;
 public sealed class RequestHandler
 {
     private readonly IKeymakerService _keymakerService;
+    private readonly IInMemoryLoggerStore _loggerStore;
 
-    public RequestHandler(IKeymakerService keymakerService)
+    public RequestHandler(IKeymakerService keymakerService, IInMemoryLoggerStore loggerStore)
     {
         _keymakerService = keymakerService;
+        _loggerStore = loggerStore;
     }
 
     public IResult TriggerChallengeAsync()
@@ -35,6 +38,20 @@ public sealed class RequestHandler
         var status = _keymakerService.GetCurrentRequestStatus();
 
         return Results.Ok(status);
+    }
+
+    public IResult GetConsole()
+    {
+        var messages = _loggerStore.GetAndJoinMessages();
+
+        return Results.Text(messages);
+    }
+
+    public IResult ClearConsole()
+    {
+        _loggerStore.Clear();
+
+        return Results.NoContent();
     }
 
     public async Task<IResult> GetMostRecentCertificateInfoAsync()
