@@ -33,6 +33,11 @@ public static class WebApplicationExtensions
             .Produces<CertificateInfo>();
       }
 
+      if (!conf.IsUiEnabled)
+      {
+         api.MapGet("/", Results.NoContent);
+      }
+
       if (conf.IsLogConsoleEnabled)
       {
          api.MapGet("/console", ([FromServices] RequestHandler handler) => handler.GetConsole())

@@ -26,6 +26,7 @@ public static class LoggingBuilderExtensions
             .AddFilter("Microsoft.AspNetCore.Mvc.StatusCodeResult", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor", LogLevel.Warning)
+            .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.DefaultActionDescriptorCollectionProvider", LogLevel.Warning)
             .AddFilter("System.Net.Http.HttpClient.Default.LogicalHandler", LogLevel.Warning)
             .AddFilter("System.Net.Http.HttpClient.Default.ClientHandler", LogLevel.Warning)
             .AddFilter("System.Net.Http.HttpClient.StateHolderApiClient.LogicalHandler", LogLevel.Warning)
