@@ -23,15 +23,12 @@ public sealed class InMemoryLogger : ILogger
         {
             return;
         }
-
-        var message = formatter(state, exception);
         var logMessage = new LogMessage
         {
             Timestamp = DateTime.Now,
             Level = logLevel.ToString(),
-            Message = message,
-            Category = _name,
-            Exception = exception
+            Message = formatter(state, exception),
+            Category = _name
         };
 
         _store.AddMessage(logMessage.ToString());

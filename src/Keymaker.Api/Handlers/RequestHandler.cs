@@ -17,6 +17,20 @@ public sealed class RequestHandler
         _loggerStore = loggerStore;
     }
 
+    public async Task<IResult> GetMostRecentCertificateInfoAsync()
+    {
+        var cert = await _keymakerService.GetMostRecentCertificateInfoAsync();
+
+        return Results.Ok(cert);
+    }
+
+    public async Task<IResult> GetChallengeInfoAsync()
+    {
+        var info = await _keymakerService.GetChallengeInfoAsync();
+
+        return Results.Ok(info);
+    }
+
     public IResult TriggerChallengeAsync()
     {
         var triggered = _keymakerService.RequestCertificate(CancellationToken.None);
@@ -52,19 +66,5 @@ public sealed class RequestHandler
         _loggerStore.Clear();
 
         return Results.NoContent();
-    }
-
-    public async Task<IResult> GetMostRecentCertificateInfoAsync()
-    {
-        var cert = await _keymakerService.GetMostRecentCertificateInfoAsync();
-
-        return Results.Ok(cert);
-    }
-
-    public async Task<IResult> GetChallengeInfoAsync()
-    {
-        var info = await _keymakerService.GetChallengeInfoAsync();
-
-        return Results.Ok(info);
     }
 }
