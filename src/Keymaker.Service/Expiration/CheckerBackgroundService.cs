@@ -34,7 +34,7 @@ public sealed class CheckerBackgroundService : BackgroundService
         {
             var nextChallenge = await _renewalChecker.ShouldTriggerChallengeAsync();
 
-            _logger.LogInformation($"Should be the challenge triggered: {nextChallenge}");
+            _logger.LogInformation(nextChallenge.ToString());
 
             if (nextChallenge.ShouldTrigger)
             {
