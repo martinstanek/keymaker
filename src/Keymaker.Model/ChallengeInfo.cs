@@ -24,6 +24,8 @@ public sealed record ChallengeInfo
 
     public required string Status { get; init; }
 
+    public required string Server { get; init; }
+
     public required bool IsAutoRenewalEnabled { get; init; }
 
     public required int RenewEveryHours { get; init; }
@@ -46,6 +48,7 @@ public sealed record ChallengeInfo
         StoreTarget = string.Empty,
         Organization = string.Empty,
         Status = string.Empty,
+        Server = string.Empty,
         IsAutoRenewalEnabled = false,
         Expiry = null,
         NextRenewal = null,

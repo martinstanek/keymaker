@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Model;
@@ -29,6 +30,7 @@ public sealed class KeyMakerService : IKeymakerService
 
     private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
     private NextChallenge _nextChallenge = NextChallenge.Empty;
+    private string _version = string.Empty;
 
     public KeyMakerService(
         IAcmeService acmeService,
@@ -101,6 +103,7 @@ public sealed class KeyMakerService : IKeymakerService
             Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,
             Obtained = lastCert.IsEmpty() ? null : lastCert.Obtained,
             Issuer = lastCert.Issuer,
+            Server = GetVersion(),
             StoreTarget = GetStoreTarget(),
             Organization = GetOrganization()
         };
@@ -176,5 +179,15 @@ public sealed class KeyMakerService : IKeymakerService
     private string GetOrganization()
     {
         return $"{_certificateParameters.OrganizationUnit}, {_certificateParameters.Organization}, {_certificateParameters.Locality}, {_certificateParameters.State}, {_certificateParameters.CountryName}";
+    }
+
+    private string GetVersion()
+    {
+        if (string.IsNullOrWhiteSpace(_version))
+        {
+            _version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? string.Empty;
+        }
+
+        return _version;
     }
 }

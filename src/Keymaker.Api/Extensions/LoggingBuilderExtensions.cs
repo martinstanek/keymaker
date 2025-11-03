@@ -15,7 +15,7 @@ public static class LoggingBuilderExtensions
 
         return builder
             .SetMinimumLevel(LogLevel.Information)
-            .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
+            .AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Warning)
             .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.StaticFiles.StaticFileMiddleware", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Cors", LogLevel.Warning)

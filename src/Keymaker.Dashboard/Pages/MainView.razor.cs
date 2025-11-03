@@ -3,6 +3,7 @@ namespace Keymaker.Dashboard.Pages;
 public partial class MainView
 {
     private Timer? _timer;
+    private string _serverVersion = string.Empty;
     private bool _autoRefresh = true;
     private bool _rendered;
 
@@ -48,6 +49,8 @@ public partial class MainView
     private async Task ReloadAsync()
     {
         var info = await Client.GetChallengeInfoInfoAsync();
+
+        _serverVersion = info.Server;
 
         Eventing.SignalChallengeInfo(info);
     }

@@ -7,19 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddLogging();
 builder.Services.AddCors();
+builder.Services.AddKeymaker();
+builder.Services.AddOpenApiDocs();
 builder.Services.ConfigureHandlers();
 builder.Services.ConfigureSerialization();
-builder.Services.AddKeymaker();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-app.UseSwaggerApiDoc("Keymaker API");
+app.UseUi();
+app.UseOpenApiDocs();
 app.UseKeymaker();
-app.UseCustomEndpoints();
+app.UseApiEndpoints();
+app.UseConsoleEndpoints();
 app.UseCors(p => { p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
 app.Run();
 

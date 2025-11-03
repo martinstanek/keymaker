@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Keymaker.Api.Configuration;
 using Keymaker.Api.Handlers;
 
 namespace Keymaker.Api.Extensions;
@@ -24,5 +25,14 @@ public static class ServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    public static IServiceCollection AddOpenApiDocs(this IServiceCollection services)
+    {
+        var conf = KeyMakerApiConfiguration.ReadFromEnvironment();
+
+        return conf.IsOpenApiDocEnabled
+            ? services.AddEndpointsApiExplorer().AddSwaggerGen()
+            : services;
     }
 }
