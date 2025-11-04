@@ -146,6 +146,8 @@ public sealed class AcmeService : IAcmeService
         };
 
         Succeeded.Invoke(this, certPersistenceInfo);
+
+        _logger.LogInformation($"The certificate generated, with expiry: {certPersistenceInfo.Expiry}");
     }
 
     private async Task<IChallengeContext> PrepareForHttpChallengeAsync(IAuthorizationContext authorize)

@@ -49,7 +49,8 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IAcmeContextFactory, AcmeContextFactory>()
             .AddSingleton<IAcmeCallback, AcmeCallback>()
             .AddSingleton<IAcmeService, AcmeService>()
-            .AddSingleton<IKeymakerService, KeyMakerService>();
+            .AddSingleton<IKeymakerService, KeyMakerService>()
+            .AddHostedService<IKeymakerService>(sp => sp.GetRequiredService<IKeymakerService>());
     }
 
     private static IServiceCollection AddStore(this IServiceCollection services, StorageMode mode)

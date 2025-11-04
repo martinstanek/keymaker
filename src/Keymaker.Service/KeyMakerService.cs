@@ -9,6 +9,7 @@ using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
@@ -57,6 +58,28 @@ public sealed class KeyMakerService : IKeymakerService
         _acmeService.Succeeded += OnSuccess;
         _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
         _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        var challengeInfo = await GetChallengeInfoAsync();
+
+        _logger.LogInformation($"Awitec Keymaker");
+        _logger.LogInformation($"Server: {challengeInfo.Server}");
+        _logger.LogInformation($"CertificateName: {challengeInfo.CertificateName}");
+        _logger.LogInformation($"Domain: {challengeInfo.Domain}");
+        _logger.LogInformation($"Organization: {challengeInfo.Organization}");
+        _logger.LogInformation($"Challenge Mode: {challengeInfo.ChallengeMode}");
+        _logger.LogInformation($"Store Mode: {challengeInfo.StoreMode}");
+        _logger.LogInformation($"Store: {challengeInfo.StoreTarget}");
+        _logger.LogInformation($"Autorenewal: {challengeInfo.IsAutoRenewalEnabled}");
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        CancelCurrentChallenge();
+
+        return Task.CompletedTask;
     }
 
     public bool RequestCertificate(CancellationToken token)
@@ -130,6 +153,8 @@ public sealed class KeyMakerService : IKeymakerService
 
     private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
     {
+        // TODO: this might not be triggered when the class has not been instantiaed by opening the UI or something ...
+
         await _storeService.PersistCertificatesAsync(e);
 
         SetState(CertificateRequestStatus.Success);
