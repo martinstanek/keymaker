@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 EXPOSE 80
 ENV ASPNETCORE_HTTP_PORTS=80
 
