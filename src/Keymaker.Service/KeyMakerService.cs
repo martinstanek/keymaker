@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,13 +8,11 @@ using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
 
 // TODO lifecycle management, docker kill signal, docker health, fluent validation
-// TODO toggle api, ui, swagger ...
 
 public sealed class KeyMakerService : IKeymakerService
 {
@@ -153,8 +150,6 @@ public sealed class KeyMakerService : IKeymakerService
 
     private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
     {
-        // TODO: this might not be triggered when the class has not been instantiaed by opening the UI or something ...
-
         await _storeService.PersistCertificatesAsync(e);
 
         SetState(CertificateRequestStatus.Success);
