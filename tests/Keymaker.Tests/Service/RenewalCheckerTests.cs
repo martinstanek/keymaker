@@ -13,7 +13,7 @@ namespace Keymaker.Tests.Service;
 public sealed class RenewalCheckerTests
 {
     [Fact]
-    public async Task ShouldTrigger_WhenNoCertificateExists_ReturnsTriggerAndRaisesEvent()
+    public async Task ShouldTrigger_NoCertificateExists_ReturnsTriggerAndRaisesEvent()
     {
         var store = new Mock<ICertStoreService>();
         var start = DateTime.Now;
@@ -54,7 +54,7 @@ public sealed class RenewalCheckerTests
     }
 
     [Fact]
-    public async Task ShouldTrigger_WhenCertificateOlderThanRenewHours_ReturnsTriggerAndNegativeOrZeroHoursLeft()
+    public async Task ShouldTrigger_CertificateOlderThanRenewHours_ReturnsTriggerAndNegativeOrZeroHoursLeft()
     {
         var store = new Mock<ICertStoreService>();
         var obtained = DateTime.Now.AddHours(-25);
@@ -95,7 +95,7 @@ public sealed class RenewalCheckerTests
     }
 
     [Fact]
-    public async Task ShouldTrigger_WhenCertificateIsRecent_ReturnsFalseAndPositiveHoursLeft()
+    public async Task ShouldTrigger_CertificateIsRecent_ReturnsFalseAndPositiveHoursLeft()
     {
         var store = new Mock<ICertStoreService>();
         var obtained = DateTime.Now.AddHours(-1);
