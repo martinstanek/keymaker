@@ -19,9 +19,9 @@ namespace Keymaker.Service.Acme;
 
 public sealed class AcmeService : IAcmeService
 {
-    private const int WaitForHttpCallbackSeconds = 60;
-    private const int WaitForDnsPropagationSeconds = 3600;
     private const int CheckDnsPropagationEverySeconds = 10;
+    private const int WaitForDnsPropagationSeconds = 3600;
+    private const int WaitForHttpCallbackSeconds = 60;
 
     private readonly IAcmeContextFactory _acmeContextFactory;
     private readonly IAcmeCallback _acmeCallback;

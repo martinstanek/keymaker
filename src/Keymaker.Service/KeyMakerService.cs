@@ -54,9 +54,11 @@ public sealed class KeyMakerService : IKeymakerService
         _logger = logger;
 
         _checker.NextChallengeChecked += OnNextChallengeChecked;
-        _acmeService.Succeeded += OnSuccess;
-        _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
         _acmeService.HttpChallengeTriggered += (_, _) => { SetState(CertificateRequestStatus.WaitingForHttpVerification); };
+        _acmeService.DnsValuePropagated += (_, _) => { SetState(CertificateRequestStatus.WaitingForDnsVerification); };
+        _acmeService.DnsValueSet += (_, _) => { SetState(CertificateRequestStatus.WaitingForDnsPropagation); };
+        _acmeService.Failed += (_, _) => { SetState(CertificateRequestStatus.Failed); };
+        _acmeService.Succeeded += OnSuccess;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -135,6 +137,18 @@ public sealed class KeyMakerService : IKeymakerService
         return info;
     }
 
+    private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
+    {
+        await _storeService.PersistCertificatesAsync(e);
+
+        SetState(CertificateRequestStatus.Success);
+
+        if (_keyMakerConfiguration.IsWebHookEnabled)
+        {
+            await _webHookService.TriggerWebHookAsync(e);
+        }
+    }
+
     private void StartChallenge(CancellationToken token)
     {
         _challengeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -154,18 +168,6 @@ public sealed class KeyMakerService : IKeymakerService
         };
 
         _logger.LogInformation($"Challenge started: {_keyMakerConfiguration.ChallengeMode}");
-    }
-
-    private async void OnSuccess(object? sender, CertificatePersistenceInfo e)
-    {
-        await _storeService.PersistCertificatesAsync(e);
-
-        SetState(CertificateRequestStatus.Success);
-
-        if (_keyMakerConfiguration.IsWebHookEnabled)
-        {
-            await _webHookService.TriggerWebHookAsync(e);
-        }
     }
 
     private void OnNextChallengeChecked(object? sender, NextChallenge e)
