@@ -31,6 +31,8 @@ public static class ServiceCollectionExtensions
     {
         var conf = KeyMakerApiConfiguration.ReadFromEnvironment();
 
+        services.AddSingleton(conf);
+
         return conf.IsOpenApiDocEnabled
             ? services.AddEndpointsApiExplorer().AddSwaggerGen()
             : services;

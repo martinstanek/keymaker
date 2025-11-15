@@ -31,7 +31,7 @@ public sealed class KeymakerApiTests
         var client = context.GetClient(challengeMode: ChallengeMode.Dns);
 
         await client.TriggerChallengeAsync();
-        await context.WaitForStatus(client, CertificateRequestStatus.Success);
+        await KeymakerApiTestsContext.WaitForStatus(client, CertificateRequestStatus.Success);
 
         var cert = await client.GetMostRecentCertificateInfoAsync();
 
@@ -45,9 +45,9 @@ public sealed class KeymakerApiTests
         var client = context.GetClient(challengeMode: ChallengeMode.Http);
 
         await client.TriggerChallengeAsync();
-        await context.WaitForStatus(client, CertificateRequestStatus.WaitingForHttpVerification);
+        await KeymakerApiTestsContext.WaitForStatus(client, CertificateRequestStatus.WaitingForHttpVerification);
         await client.ConfirmHttpChallengeAsync("test");
-        await context.WaitForStatus(client, CertificateRequestStatus.Success);
+        await KeymakerApiTestsContext.WaitForStatus(client, CertificateRequestStatus.Success);
 
         var cert = await client.GetMostRecentCertificateInfoAsync();
 
@@ -56,46 +56,6 @@ public sealed class KeymakerApiTests
 
     private sealed class KeymakerApiTestsContext
     {
-        internal Mock<ICertStoreService> CertStore { get; init; } = new(); // TODO: try to use the volume store
-
-        internal Mock<IDnsService> DnsService { get; init; } = new();
-
-        internal Mock<IAcmeContextFactory> AcmeContextFactory { get; init; } = new();
-
-        internal Mock<IAcmeContext> AcmeContext { get; init; } = new();
-
-        internal Mock<IOrderContext> AcmeOrderContext { get; init; } = new();
-
-        internal Mock<IAuthorizationContext> AcmeAuthContext { get; init; } = new();
-
-        internal Mock<IKey> AcmeAccountKey { get; init; } = new();
-
-        internal Mock<IDnsProvider> DnsProvider { get; init; } = new();
-
-        internal Mock<IHttpProvider> HttpProvider { get; init; } = new();
-
-        internal Mock<IChallengeContext> AcmeChallengeContext { get; init; } = new();
-
-        internal Mock<ICertProducer> CertProducer { get; init; } = new();
-
-        internal async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 30)
-        {
-            var span = TimeSpan.FromSeconds(timeSpanSeconds);
-            var token = new CancellationTokenSource(span).Token;
-
-            while (!token.IsCancellationRequested)
-            {
-                var challengeStatus = await client.GetChallengeStatusAsync();
-
-                if (challengeStatus.Status == status)
-                {
-                    return;
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(2), token);
-            }
-        }
-
         internal IKeymakerClient GetClient(ChallengeMode challengeMode)
         {
             var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([AcmeAuthContext.Object]);
@@ -169,7 +129,25 @@ public sealed class KeymakerApiTests
             return new KeymakerClient(httpClient);
         }
 
-        internal CloudFlareDnsServiceConfiguration GetTestDnsConfiguration()
+        internal static async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 30)
+        {
+            var span = TimeSpan.FromSeconds(timeSpanSeconds);
+            var token = new CancellationTokenSource(span).Token;
+
+            while (!token.IsCancellationRequested)
+            {
+                var challengeStatus = await client.GetChallengeStatusAsync();
+
+                if (challengeStatus.Status == status)
+                {
+                    return;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(2), token);
+            }
+        }
+
+        private static CloudFlareDnsServiceConfiguration GetTestDnsConfiguration()
         {
             return new CloudFlareDnsServiceConfiguration
             {
@@ -181,7 +159,7 @@ public sealed class KeymakerApiTests
             };
         }
 
-        internal CertificateParameters GetTestCertificateParams()
+        private static CertificateParameters GetTestCertificateParams()
         {
             return new CertificateParameters()
             {
@@ -196,5 +174,27 @@ public sealed class KeymakerApiTests
                 State = "Zuerich"
             };
         }
+
+        private Mock<IAcmeContextFactory> AcmeContextFactory { get; init; } = new();
+
+        private Mock<IChallengeContext> AcmeChallengeContext { get; init; } = new();
+
+        private Mock<IAuthorizationContext> AcmeAuthContext { get; init; } = new();
+
+        private Mock<IOrderContext> AcmeOrderContext { get; init; } = new();
+
+        private Mock<ICertStoreService> CertStore { get; init; } = new(); // TODO: try to use the volume store
+
+        private Mock<IHttpProvider> HttpProvider { get; init; } = new();
+
+        private Mock<ICertProducer> CertProducer { get; init; } = new();
+
+        private Mock<IAcmeContext> AcmeContext { get; init; } = new();
+
+        private Mock<IDnsProvider> DnsProvider { get; init; } = new();
+
+        private Mock<IDnsService> DnsService { get; init; } = new();
+
+        private Mock<IKey> AcmeAccountKey { get; init; } = new();
     }
 }
