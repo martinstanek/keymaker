@@ -2,6 +2,8 @@
 
 *... certificates and stuff ... work in progress*
 
+[![Build status](https://awitec.visualstudio.com/Awitec/_apis/build/status/awitec.keymaker)](https://awitec.visualstudio.com/Awitec/_build/latest?definitionId=56)
+
 ![logo](https://github.com/martinstanek/keymaker/blob/develop/misc/logo.svg?raw=true)
 
 ![ui](https://github.com/martinstanek/keymaker/blob/develop/misc/ui.png?raw=true)
