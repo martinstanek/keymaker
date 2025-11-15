@@ -17,4 +17,9 @@ internal static class ModelExtensions
             CommonName = certificateParameters.Domain
         };
     }
+
+    internal static string GetOrganisation(this CertificateParameters certificateParameters)
+    {
+        return $"{certificateParameters.OrganizationUnit}, {certificateParameters.Organization}, {certificateParameters.Locality}, {certificateParameters.State}, {certificateParameters.CountryName}";
+    }
 }

@@ -2,13 +2,14 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
+using Keymaker.Service.Extensions;
 using Keymaker.Service.Integrations;
 using Keymaker.Service.Store;
-using Microsoft.Extensions.Logging;
 
 namespace Keymaker.Service;
 
@@ -16,16 +17,17 @@ namespace Keymaker.Service;
 
 public sealed class KeyMakerService : IKeymakerService
 {
-    private readonly IAcmeService _acmeService;
     private readonly ICertStoreService _storeService;
     private readonly IWebHookService _webHookService;
+    private readonly IAcmeService _acmeService;
     private readonly IRenewalChecker _checker;
-    private readonly CertificateParameters _certificateParameters;
     private readonly ILogger<KeyMakerService> _logger;
-    private readonly KeyMakerConfiguration _keyMakerConfiguration;
     private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
     private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
+    private readonly CertificateParameters _certificateParameters;
+    private readonly KeyMakerConfiguration _keyMakerConfiguration;
 
+    private CancellationTokenSource _challengeTokenSource = new();
     private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
     private NextChallenge _nextChallenge = NextChallenge.Empty;
     private string _version = string.Empty;
@@ -35,8 +37,8 @@ public sealed class KeyMakerService : IKeymakerService
         ICertStoreService storeService,
         IWebHookService webHookService,
         IRenewalChecker checker,
-        KeyMakerConfiguration keyMakerConfiguration,
         AzureKeyVaultStoreConfiguration azureVaultConfiguration,
+        KeyMakerConfiguration keyMakerConfiguration,
         VolumeStoreConfiguration volumeStoreConfiguration,
         CertificateParameters certificateParameters,
         ILogger<KeyMakerService> logger)
@@ -92,7 +94,10 @@ public sealed class KeyMakerService : IKeymakerService
         return true;
     }
 
-    public void CancelCurrentChallenge() { }
+    public void CancelCurrentChallenge()
+    {
+        _challengeTokenSource.Cancel();
+    }
 
     public ChallengeStatus GetCurrentRequestStatus()
     {
@@ -107,7 +112,6 @@ public sealed class KeyMakerService : IKeymakerService
     public async Task<ChallengeInfo> GetChallengeInfoAsync()
     {
         var lastCert = await GetMostRecentCertificateInfoAsync();
-
         var info = new ChallengeInfo
         {
             Contact = _certificateParameters.Contact,
@@ -125,7 +129,7 @@ public sealed class KeyMakerService : IKeymakerService
             Issuer = lastCert.Issuer,
             Server = GetVersion(),
             StoreTarget = GetStoreTarget(),
-            Organization = GetOrganization()
+            Organization = _certificateParameters.GetOrganisation()
         };
 
         return info;
@@ -133,9 +137,13 @@ public sealed class KeyMakerService : IKeymakerService
 
     private void StartChallenge(CancellationToken token)
     {
+        _challengeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        var linkedToken = _challengeTokenSource.Token;
+
         Task.Factory.StartNew(
-            () => _acmeService.RequestCertificateAsync(_keyMakerConfiguration.ChallengeMode, _certificateParameters, token),
-            CancellationToken.None,
+            () => _acmeService.RequestCertificateAsync(_keyMakerConfiguration.ChallengeMode, _certificateParameters, linkedToken),
+            linkedToken,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
@@ -194,11 +202,6 @@ public sealed class KeyMakerService : IKeymakerService
             StorageMode.Volume => _volumeStoreConfiguration.ToplevelFolder,
             _ => throw new NotSupportedException()
         };
-    }
-
-    private string GetOrganization()
-    {
-        return $"{_certificateParameters.OrganizationUnit}, {_certificateParameters.Organization}, {_certificateParameters.Locality}, {_certificateParameters.State}, {_certificateParameters.CountryName}";
     }
 
     private string GetVersion()
