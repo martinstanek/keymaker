@@ -1,12 +1,12 @@
-﻿using Keymaker.Model;
+﻿using System;
+using System.Threading.Tasks;
+using Keymaker.Model;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Store;
 using Moq;
-using Shouldly;
-using System;
-using System.Threading.Tasks;
 using Xunit;
+using Shouldly;
 
 namespace Keymaker.Tests.Service;
 
@@ -95,7 +95,7 @@ public sealed class RenewalCheckerTests
     }
 
     [Fact]
-    public async Task ShouldNotTrigger_WhenCertificateIsRecent_ReturnsFalseAndPositiveHoursLeft()
+    public async Task ShouldTrigger_WhenCertificateIsRecent_ReturnsFalseAndPositiveHoursLeft()
     {
         var store = new Mock<ICertStoreService>();
         var obtained = DateTime.Now.AddHours(-1);
