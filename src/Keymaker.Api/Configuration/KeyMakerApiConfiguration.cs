@@ -12,6 +12,8 @@ public sealed record KeyMakerApiConfiguration
 
     public required bool IsApiEnabled { get; init; }
 
+    public required bool IsChallengeTriggerEnabled { get; init; }
+
     public static KeyMakerApiConfiguration ReadFromEnvironment()
     {
         return new KeyMakerApiConfiguration
@@ -19,7 +21,8 @@ public sealed record KeyMakerApiConfiguration
             IsUiEnabled = Env.ReadBool("KEYMAKER_ENABLEUI", true),
             IsApiEnabled = Env.ReadBool("KEYMAKER_ENABLEAPI", true),
             IsLogConsoleEnabled = Env.ReadBool("KEYMAKER_ENABLECONSOLE", true),
-            IsOpenApiDocEnabled = Env.ReadBool("KEYMAKER_ENABLEOPENAPI", true)
+            IsOpenApiDocEnabled = Env.ReadBool("KEYMAKER_ENABLEOPENAPI", true),
+            IsChallengeTriggerEnabled = Env.ReadBool("KEYMAKER_ENABLECHALLENGETRIGGER", true)
         };
     }
 }
