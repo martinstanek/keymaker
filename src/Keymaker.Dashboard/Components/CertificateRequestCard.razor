@@ -29,7 +29,7 @@
             </MudItem>
         </MudGrid>
         <div style="margin-top: 15px; display: flex; justify-content: center" >
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!@ChallengeInfo.IsChallengeTriggerEnabled" OnClick="@OnTriggerClick">trigger challenge</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled=@(!ChallengeInfo.IsChallengeTriggerEnabled) OnClick="@OnTriggerClick">trigger challenge</MudButton>
         </div>
     </MudCardContent>
 </MudCard>
