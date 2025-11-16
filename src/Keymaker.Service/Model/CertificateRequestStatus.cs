@@ -1,4 +1,4 @@
-namespace Keymaker.Model;
+namespace Keymaker.Service.Model;
 
 public enum CertificateRequestStatus
 {

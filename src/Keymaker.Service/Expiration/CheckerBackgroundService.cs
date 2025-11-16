@@ -9,10 +9,13 @@ namespace Keymaker.Service.Expiration;
 
 public sealed class CheckerBackgroundService : BackgroundService
 {
+    private const int DelayFirstExecutionSeconds = 10;
+
     private readonly IKeymakerService _keymakerService;
     private readonly IRenewalChecker _renewalChecker;
     private readonly ILogger<CheckerBackgroundService> _logger;
     private readonly TimeSpan _period;
+    private bool _deferredStart = true;
 
     public CheckerBackgroundService(
         IKeymakerService keymakerService,
@@ -28,6 +31,13 @@ public sealed class CheckerBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (_deferredStart)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(DelayFirstExecutionSeconds), stoppingToken);
+
+            _deferredStart = false;
+        }
+
         using var timer = new PeriodicTimer(_period);
 
         while (!stoppingToken.IsCancellationRequested)
