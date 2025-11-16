@@ -8,13 +8,16 @@ namespace Keymaker.Api.Extensions;
 
 public static class WebAppApplicationBuilderExtensions
 {
-    public static void AddLogging(this WebApplicationBuilder builder)
+    extension(WebApplicationBuilder builder)
     {
-        var store = new InMemoryLoggerStore();
-        var provider = new InMemoryLoggerProvider(store);
+        public void AddLogging()
+        {
+            var store = new InMemoryLoggerStore();
+            var provider = new InMemoryLoggerProvider(store);
 
-        builder.Logging.SetDefaultLevels();
-        builder.Logging.AddProvider(provider);
-        builder.Services.AddSingleton<IInMemoryLoggerStore>(store);
+            builder.Logging.SetDefaultLevels();
+            builder.Logging.AddProvider(provider);
+            builder.Services.AddSingleton<IInMemoryLoggerStore>(store);
+        }
     }
 }

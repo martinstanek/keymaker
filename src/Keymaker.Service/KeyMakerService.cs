@@ -101,16 +101,6 @@ public sealed class KeyMakerService : IKeymakerService
         _challengeTokenSource.Cancel();
     }
 
-    public ChallengeStatus GetCurrentRequestStatus()
-    {
-        return _challengeStatus;
-    }
-
-    public Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
-    {
-        return _storeService.GetMostRecentCertificateInfoAsync();
-    }
-
     public async Task<ChallengeInfo> GetChallengeInfoAsync()
     {
         var lastCert = await GetMostRecentCertificateInfoAsync();
@@ -118,7 +108,6 @@ public sealed class KeyMakerService : IKeymakerService
         {
             Contact = _certificateParameters.Contact,
             CertificateName = _certificateParameters.CertificateName,
-            Domain = _certificateParameters.Domain,
             DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
             Status = _challengeStatus.Status.ToString(),
             ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
@@ -128,6 +117,7 @@ public sealed class KeyMakerService : IKeymakerService
             NextRenewal = _nextChallenge.IsEmpty() ? null : _nextChallenge.NextNegotiation,
             Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,
             Obtained = lastCert.IsEmpty() ? null : lastCert.Obtained,
+            Domain = lastCert.IsEmpty() ? _certificateParameters.Domain : lastCert.Domain,
             Issuer = lastCert.Issuer,
             Server = GetVersion(),
             StoreTarget = GetStoreTarget(),
@@ -135,6 +125,11 @@ public sealed class KeyMakerService : IKeymakerService
         };
 
         return info;
+    }
+
+    private Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
+    {
+        return _storeService.GetMostRecentCertificateInfoAsync();
     }
 
     private async void OnSuccess(object? sender, CertificatePersistenceInfo e)

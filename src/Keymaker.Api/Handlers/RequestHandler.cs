@@ -20,13 +20,6 @@ public sealed class RequestHandler
         _configuration = configuration;
     }
 
-    public async Task<IResult> GetMostRecentCertificateInfoAsync()
-    {
-        var cert = await _keymakerService.GetMostRecentCertificateInfoAsync();
-
-        return Results.Ok(cert);
-    }
-
     public async Task<IResult> GetChallengeInfoAsync()
     {
         var info = await _keymakerService.GetChallengeInfoAsync();
@@ -53,13 +46,6 @@ public sealed class RequestHandler
         _keymakerService.CancelCurrentChallenge();
 
         return Results.NoContent();
-    }
-
-    public IResult GetChallengeStatus()
-    {
-        var status = _keymakerService.GetCurrentRequestStatus();
-
-        return Results.Ok(status);
     }
 
     public IResult GetConsole()

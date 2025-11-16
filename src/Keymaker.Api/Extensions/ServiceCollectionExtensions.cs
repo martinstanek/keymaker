@@ -7,34 +7,37 @@ namespace Keymaker.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection ConfigureHandlers(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        return services.AddSingleton<RequestHandler>();
-    }
-
-    public static IServiceCollection ConfigureSerialization(this IServiceCollection services)
-    {
-        services.ConfigureHttpJsonOptions(options =>
+        public IServiceCollection ConfigureHandlers()
         {
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
+            return services.AddSingleton<RequestHandler>();
+        }
 
-        services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+        public IServiceCollection ConfigureSerialization()
         {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
+            services.ConfigureHttpJsonOptions(options =>
+            {
+                options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
-        return services;
-    }
+            services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
-    public static IServiceCollection AddOpenApiDocs(this IServiceCollection services)
-    {
-        var conf = KeyMakerApiConfiguration.ReadFromEnvironment();
+            return services;
+        }
 
-        services.AddSingleton(conf);
+        public IServiceCollection AddOpenApiDocs()
+        {
+            var conf = KeyMakerApiConfiguration.ReadFromEnvironment();
 
-        return conf.IsOpenApiDocEnabled
-            ? services.AddEndpointsApiExplorer().AddSwaggerGen()
-            : services;
+            services.AddSingleton(conf);
+
+            return conf.IsOpenApiDocEnabled
+                ? services.AddEndpointsApiExplorer().AddSwaggerGen()
+                : services;
+        }
     }
 }

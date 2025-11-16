@@ -11,9 +11,5 @@ public interface IKeymakerService : IHostedService
 
     void CancelCurrentChallenge();
 
-    ChallengeStatus GetCurrentRequestStatus();
-
-    Task<CertificateInfo> GetMostRecentCertificateInfoAsync();
-
     Task<ChallengeInfo> GetChallengeInfoAsync();
 }

@@ -14,25 +14,11 @@ public sealed class KeymakerClient : IKeymakerClient
         _httpClient = httpClient;
     }
 
-    public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
-    {
-        var certificateInfo = await _httpClient.GetFromJsonAsync<CertificateInfo>("/certificate");
-
-        return certificateInfo ?? CertificateInfo.Empty;
-    }
-
     public async Task<ChallengeInfo> GetChallengeInfoInfoAsync()
     {
         var status = await _httpClient.GetFromJsonAsync<ChallengeInfo>("/challenge/info");
 
         return status ?? ChallengeInfo.Empty;
-    }
-
-    public async Task<ChallengeStatus> GetChallengeStatusAsync()
-    {
-        var status = await _httpClient.GetFromJsonAsync<ChallengeStatus>("/challenge/status");
-
-        return status ?? ChallengeStatus.Empty;
     }
 
     public Task CancelCurrentChallengeAsync()

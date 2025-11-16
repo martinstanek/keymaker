@@ -33,9 +33,9 @@ public sealed class KeymakerApiTests
         await client.TriggerChallengeAsync();
         await KeymakerApiTestsContext.WaitForStatus(client, CertificateRequestStatus.Success);
 
-        var cert = await client.GetMostRecentCertificateInfoAsync();
+        var challengeInfo = await client.GetChallengeInfoInfoAsync();
 
-        cert.Domain.ShouldBe("example.com");
+        challengeInfo.Domain.ShouldBe("example.com");
     }
 
     [Fact]
@@ -49,9 +49,9 @@ public sealed class KeymakerApiTests
         await client.ConfirmHttpChallengeAsync("test");
         await KeymakerApiTestsContext.WaitForStatus(client, CertificateRequestStatus.Success);
 
-        var cert = await client.GetMostRecentCertificateInfoAsync();
+        var challengeInfoAsync = await client.GetChallengeInfoInfoAsync();
 
-        cert.Domain.ShouldBe("example.com");
+        challengeInfoAsync.Domain.ShouldBe("example.com");
     }
 
     private sealed class KeymakerApiTestsContext
@@ -136,9 +136,9 @@ public sealed class KeymakerApiTests
 
             while (!token.IsCancellationRequested)
             {
-                var challengeStatus = await client.GetChallengeStatusAsync();
+                var challengeStatus = await client.GetChallengeInfoInfoAsync();
 
-                if (challengeStatus.Status == status)
+                if (challengeStatus.Status == status.ToString())
                 {
                     return;
                 }
@@ -161,7 +161,7 @@ public sealed class KeymakerApiTests
 
         private static CertificateParameters GetTestCertificateParams()
         {
-            return new CertificateParameters()
+            return new CertificateParameters
             {
                 CertificateName = "certificate.name",
                 Contact = "test@example.com",
