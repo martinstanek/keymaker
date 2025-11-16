@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Api.Configuration;
 using Keymaker.Api.Logging.Store;
 using Microsoft.AspNetCore.Http;
 using Keymaker.Service;
@@ -11,13 +10,11 @@ public sealed class RequestHandler
 {
     private readonly IKeymakerService _keymakerService;
     private readonly IInMemoryLoggerStore _loggerStore;
-    private readonly KeyMakerApiConfiguration _configuration;
 
-    public RequestHandler(IKeymakerService keymakerService, IInMemoryLoggerStore loggerStore, KeyMakerApiConfiguration configuration)
+    public RequestHandler(IKeymakerService keymakerService, IInMemoryLoggerStore loggerStore)
     {
         _keymakerService = keymakerService;
         _loggerStore = loggerStore;
-        _configuration = configuration;
     }
 
     public async Task<IResult> GetChallengeInfoAsync()
@@ -29,11 +26,6 @@ public sealed class RequestHandler
 
     public IResult TriggerChallengeAsync()
     {
-        if (!_configuration.IsChallengeTriggerEnabled)
-        {
-            return Results.Problem("Rejected", "", StatusCodes.Status403Forbidden);
-        }
-
         var triggered = _keymakerService.RequestCertificate(CancellationToken.None);
 
         return triggered

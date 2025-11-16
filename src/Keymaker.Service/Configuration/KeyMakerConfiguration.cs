@@ -14,6 +14,8 @@ public sealed record KeyMakerConfiguration
 
     public required bool IsWebHookEnabled { get; init; }
 
+    public required bool IsChallengeTriggerEnabled { get; init; }
+
     public required string WebHookUrl { get; init; }
 
     public required int RenewEveryHours { get; init; }

@@ -80,6 +80,7 @@ public static class EnvironmentReader
             ChallengeMode = Env.ReadEnum("KEYMAKER_CHALLENGEMODE", ChallengeMode.Http),
             IsAutoRenewalEnabled = Env.ReadBool("KEYMAKER_AUTORENEW", false),
             IsWebHookEnabled = Env.ReadBool("KEYMAKER_WEBHOOK", false),
+            IsChallengeTriggerEnabled = Env.ReadBool("KEYMAKER_ENABLECHALLENGETRIGGER", true),
             WebHookUrl = Env.ReadString("KEYMAKER_WEBHOOKURL"),
             RenewEveryHours = Env.ReadInt("KEYMAKER_RENEWEVERYHOURS", 240),
             CheckForExpirationEveryMinutes = Env.ReadInt("KEYMAKER_CHECKEVERYMINUTES", 10)

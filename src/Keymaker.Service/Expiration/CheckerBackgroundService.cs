@@ -34,11 +34,11 @@ public sealed class CheckerBackgroundService : BackgroundService
         {
             var nextChallenge = await _renewalChecker.ShouldTriggerChallengeAsync();
 
-            _logger.LogInformation($"Next challenge: {nextChallenge.NextNegotiation:s}, Hours left: {nextChallenge.HoursLeft}");
+            _logger.LogInformation($"Next challenge: {nextChallenge.NextNegotiation:yy.MM.dd HH:mm:ss}, Hours left: {nextChallenge.HoursLeft}");
 
             if (nextChallenge.ShouldTrigger)
             {
-                _keymakerService.RequestCertificate(stoppingToken);
+                _keymakerService.RequestCertificateInternal(stoppingToken);
             }
 
             await timer.WaitForNextTickAsync(stoppingToken);

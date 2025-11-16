@@ -86,6 +86,11 @@ public sealed class KeyMakerService : IKeymakerService
 
     public bool RequestCertificate(CancellationToken token)
     {
+        return _keyMakerConfiguration.IsChallengeTriggerEnabled && RequestCertificateInternal(token);
+    }
+
+    public bool RequestCertificateInternal(CancellationToken token)
+    {
         if (!CanProcessRequest())
         {
             _logger.LogWarning($"Can not process the request, state is {_challengeStatus}");
@@ -114,6 +119,7 @@ public sealed class KeyMakerService : IKeymakerService
             ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
             StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
             IsAutoRenewalEnabled = _keyMakerConfiguration.IsAutoRenewalEnabled,
+            IsChallengeTriggerEnabled = _keyMakerConfiguration.IsChallengeTriggerEnabled,
             RenewEveryHours = _keyMakerConfiguration.RenewEveryHours,
             NextRenewal = _nextChallenge.IsEmpty() ? null : _nextChallenge.NextNegotiation,
             Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,

@@ -23,13 +23,13 @@
                 <ValueLabel Label="Obtained:" Value=@Obtained/>
                 <ValueLabel Label="Next renewal:" Value=@NextRenewal/>
                 <ValueLabel Label="Issuer:" Value=@ChallengeInfo.Issuer />
-                <ValueLabel Label="Autorenewal:" Value=@ChallengeInfo.IsAutoRenewalEnabled.ToString() />
+                <ValueLabel Label="Autorenewal:" Value=@AutoRenewal />
                 <ValueLabel Label="Renew every (hours):" Value=@ChallengeInfo.RenewEveryHours.ToString() />
                 <ValueLabel Label="Keymaker state:" Value=@ChallengeInfo.Status />
             </MudItem>
         </MudGrid>
         <div style="margin-top: 15px; display: flex; justify-content: center" >
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnTriggerClick">trigger challenge</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!@ChallengeInfo.IsChallengeTriggerEnabled" OnClick="@OnTriggerClick">trigger challenge</MudButton>
         </div>
     </MudCardContent>
 </MudCard>

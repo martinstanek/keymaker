@@ -15,6 +15,8 @@ public partial class CertificateRequestCard
 
     private string NextRenewal => ChallengeInfo.NextRenewal?.ToString("yyyy.MM.dd HH:mm:ss") ?? "-";
 
+    private string AutoRenewal => ChallengeInfo.IsAutoRenewalEnabled ? "Yes" : "No";
+
     protected override void OnInitialized()
     {
         base.OnInitialized();

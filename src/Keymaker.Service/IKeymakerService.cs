@@ -9,6 +9,8 @@ public interface IKeymakerService : IHostedService
 {
     bool RequestCertificate(CancellationToken token);
 
+    internal bool RequestCertificateInternal(CancellationToken token);
+
     void CancelCurrentChallenge();
 
     Task<ChallengeInfo> GetChallengeInfoAsync();

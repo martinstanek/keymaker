@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Keymaker.Model;
 using Keymaker.Client;
+using Keymaker.Service.Configuration;
+using Keymaker.Service.Model;
 using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Dns;
 using Keymaker.Service.Acme.Factories;
@@ -15,8 +17,6 @@ using Keymaker.Service.Store;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
-using Keymaker.Service.Configuration;
-using Keymaker.Service.Model;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -86,6 +86,7 @@ public sealed class KeymakerApiTests
                 StorageMode = StorageMode.Volume,
                 IsAutoRenewalEnabled = false,
                 IsWebHookEnabled = false,
+                IsChallengeTriggerEnabled = true,
                 WebHookUrl = string.Empty,
                 RenewEveryHours = 0,
                 CheckForExpirationEveryMinutes = 0

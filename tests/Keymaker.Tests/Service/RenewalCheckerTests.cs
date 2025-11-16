@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keymaker.Model;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Model;
@@ -28,6 +27,7 @@ public sealed class RenewalCheckerTests
             DnsMode = default,
             StorageMode = default,
             IsAutoRenewalEnabled = false,
+            IsChallengeTriggerEnabled = true,
             IsWebHookEnabled = false,
             WebHookUrl = string.Empty
         };
@@ -75,6 +75,7 @@ public sealed class RenewalCheckerTests
             DnsMode = default,
             StorageMode = default,
             IsAutoRenewalEnabled = false,
+            IsChallengeTriggerEnabled = true,
             IsWebHookEnabled = false,
             WebHookUrl = string.Empty
         };
@@ -116,6 +117,7 @@ public sealed class RenewalCheckerTests
             DnsMode = default,
             StorageMode = default,
             IsAutoRenewalEnabled = false,
+            IsChallengeTriggerEnabled = true,
             IsWebHookEnabled = false,
             WebHookUrl = string.Empty
         };

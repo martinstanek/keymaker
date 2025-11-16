@@ -28,6 +28,8 @@ public sealed record ChallengeInfo
 
     public required bool IsAutoRenewalEnabled { get; init; }
 
+    public required bool IsChallengeTriggerEnabled { get; init; }
+
     public required int RenewEveryHours { get; init; }
 
     public required DateTime? Obtained { get; init; }
@@ -50,6 +52,7 @@ public sealed record ChallengeInfo
         Status = string.Empty,
         Server = string.Empty,
         IsAutoRenewalEnabled = false,
+        IsChallengeTriggerEnabled = false,
         Expiry = null,
         NextRenewal = null,
         Obtained = null,
