@@ -16,6 +16,7 @@ using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Model;
 using Moq;
 using Shouldly;
 using Xunit;

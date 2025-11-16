@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Certes.Acme;
 using Keymaker.Model;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme.Certificates;
 

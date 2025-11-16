@@ -14,6 +14,7 @@ using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Http;
 using Certes;
 using Certes.Acme;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme;
 

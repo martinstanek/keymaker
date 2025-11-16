@@ -9,6 +9,7 @@ using Keymaker.Service.Configuration;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Extensions;
 using Keymaker.Service.Integrations;
+using Keymaker.Service.Model;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
@@ -27,8 +28,8 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly CertificateParameters _certificateParameters;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
 
+    private CertificateRequestStatus _challengeStatus = CertificateRequestStatus.Idle;
     private CancellationTokenSource _challengeTokenSource = new();
-    private ChallengeStatus _challengeStatus = ChallengeStatus.Empty;
     private NextChallenge _nextChallenge = NextChallenge.Empty;
     private string _version = string.Empty;
 
@@ -87,7 +88,7 @@ public sealed class KeyMakerService : IKeymakerService
     {
         if (!CanProcessRequest())
         {
-            _logger.LogWarning($"Can not process the request, state is {_challengeStatus.Status}");
+            _logger.LogWarning($"Can not process the request, state is {_challengeStatus}");
             return false;
         }
 
@@ -109,7 +110,7 @@ public sealed class KeyMakerService : IKeymakerService
             Contact = _certificateParameters.Contact,
             CertificateName = _certificateParameters.CertificateName,
             DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
-            Status = _challengeStatus.Status.ToString(),
+            Status = _challengeStatus.ToString(),
             ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
             StoreMode = _keyMakerConfiguration.StorageMode.ToString(),
             IsAutoRenewalEnabled = _keyMakerConfiguration.IsAutoRenewalEnabled,
@@ -156,12 +157,7 @@ public sealed class KeyMakerService : IKeymakerService
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
-        _challengeStatus = _challengeStatus with
-        {
-            Status = CertificateRequestStatus.Started,
-            Requested = DateTime.UtcNow
-        };
-
+        _challengeStatus = CertificateRequestStatus.Started;
         _logger.LogInformation($"Challenge started: {_keyMakerConfiguration.ChallengeMode}");
     }
 
@@ -172,10 +168,7 @@ public sealed class KeyMakerService : IKeymakerService
 
     private void SetState(CertificateRequestStatus status)
     {
-        _challengeStatus = _challengeStatus with
-        {
-            Status = status
-        };
+        _challengeStatus = status;
     }
 
     private bool CanProcessRequest()
@@ -188,7 +181,7 @@ public sealed class KeyMakerService : IKeymakerService
             CertificateRequestStatus.Idle
         };
 
-        return allowedStates.Contains(_challengeStatus.Status);
+        return allowedStates.Contains(_challengeStatus);
     }
 
     private string GetStoreTarget()

@@ -1,5 +1,6 @@
 using Certes;
 using Keymaker.Model;
+using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Extensions;
 
