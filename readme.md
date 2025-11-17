@@ -3,6 +3,7 @@
 *... certificates and stuff ... work in progress*
 
 [![Build status](https://awitec.visualstudio.com/Awitec/_apis/build/status/awitec.keymaker)](https://awitec.visualstudio.com/Awitec/_build/latest?definitionId=56)
+![Docker Image Version](https://img.shields.io/docker/v/awitec/keymaker)
 
 ![logo](https://github.com/martinstanek/keymaker/blob/develop/misc/logo.svg?raw=true)
 
@@ -19,7 +20,7 @@ services:
   keymaker.awitec.net:
     hostname: keymaker.awitec.net
     container_name: keymaker.awitec.net
-    image: registry.lan.awitec.net/keymaker:0.0.109-amd64
+    image: awitec/keymaker:0.0.126-amd64
     environment:
       # keymaker
       - KEYMAKER_DNSMODE=CloudFlare
