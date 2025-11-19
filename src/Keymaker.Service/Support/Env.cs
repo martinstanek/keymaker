@@ -14,6 +14,11 @@ public static class Env
             return val;
         }
 
+        if (string.IsNullOrWhiteSpace(secretFile))
+        {
+            return defaultValue;
+        }
+
         var secretFilePath = GetEnvStr(secretFile);
 
         if (string.IsNullOrWhiteSpace(secretFilePath))
