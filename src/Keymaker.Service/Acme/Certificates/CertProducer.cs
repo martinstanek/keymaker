@@ -1,7 +1,6 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Keymaker.Model;
 using Keymaker.Service.Extensions;
 using Certes;
 using Certes.Acme;

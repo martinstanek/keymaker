@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Keymaker.Model;
 using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Store;

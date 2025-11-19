@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.Extensions.Logging;
-using Keymaker.Model;
 using Keymaker.Service.Configuration;
 using Keymaker.Service.Model;
 

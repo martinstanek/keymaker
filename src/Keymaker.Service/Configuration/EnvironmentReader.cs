@@ -1,4 +1,3 @@
-using Keymaker.Model;
 using Keymaker.Service.Model;
 using Keymaker.Service.Support;
 
@@ -10,10 +9,10 @@ public static class EnvironmentReader
     {
         return new CertificateParameters
         {
-            Contact = Env.ReadString("KEYMAKER_CONTACT"),
+            Contact = Env.ReadString("KEYMAKER_CONTACT", secretFile: "KEYMAKER_CONTACT_FILE"),
             Domain = Env.ReadString("KEYMAKER_DOMAIN"),
             CertificateName = Env.ReadString("KEYMAKER_CERTNAME"),
-            Password = Env.ReadString("KEYMAKER_PASSWORD"),
+            Password = Env.ReadString("KEYMAKER_PASSWORD", secretFile: "KEYMAKER_PASSWORD_FILE"),
             CountryName = Env.ReadString("KEYMAKER_COUNTRY"),
             State = Env.ReadString("KEYMAKER_STATE"),
             Locality = Env.ReadString("KEYMAKER_LOCALITY"),
@@ -26,9 +25,9 @@ public static class EnvironmentReader
     {
         return new CloudFlareDnsServiceConfiguration
         {
-            Email = Env.ReadString("KEYMAKER_CFDNSAPIEMAIL"),
-            Key = Env.ReadString("KEYMAKER_CFDNSAPIKEY"),
-            Zone = Env.ReadString("KEYMAKER_CFDNSAPIZONE"),
+            Email = Env.ReadString("KEYMAKER_CFDNSAPIEMAIL", secretFile: "KEYMAKER_CFDNSAPIEMAIL_FILE"),
+            Key = Env.ReadString("KEYMAKER_CFDNSAPIKEY", secretFile: "KEYMAKER_CFDNSAPIKEY_FILE"),
+            Zone = Env.ReadString("KEYMAKER_CFDNSAPIZONE", secretFile: "KEYMAKER_CFDNSAPIZONE_FILE"),
             DnsChallengeCheckDomain = Env.ReadString("KEYMAKER_CFDNSCHECKDOMAIN"),
             DnsChallengeSetDomain = Env.ReadString("KEYMAKER_CFDNSSETDOMAIN")
         };
@@ -40,7 +39,7 @@ public static class EnvironmentReader
         {
             ClientId = Env.ReadGuid("KEYMAKER_AZCLIENTID"),
             TenantId = Env.ReadGuid("KEYMAKER_AZTENANTID"),
-            Secret = Env.ReadString("KEYMAKER_AZSECRET")
+            Secret = Env.ReadString("KEYMAKER_AZSECRET", secretFile: "KEYMAKER_AZSECRET_FILE")
         };
     }
 

@@ -1,4 +1,3 @@
-using Keymaker.Model;
 using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Configuration;

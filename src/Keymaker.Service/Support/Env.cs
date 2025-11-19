@@ -1,14 +1,29 @@
 using System;
+using System.IO;
 
 namespace Keymaker.Service.Support;
 
 public static class Env
 {
-    public static string ReadString(string name, string defaultValue = "")
+    public static string ReadString(string name, string defaultValue = "", string secretFile = "")
     {
         var val = GetEnvStr(name);
 
-        return string.IsNullOrWhiteSpace(val) ? defaultValue : val;
+        if (!string.IsNullOrWhiteSpace(val))
+        {
+            return val;
+        }
+
+        var secretFilePath = GetEnvStr(secretFile);
+
+        if (string.IsNullOrWhiteSpace(secretFilePath))
+        {
+            return defaultValue;
+        }
+
+        var secret = File.ReadAllText(secretFilePath).Trim();
+
+        return string.IsNullOrWhiteSpace(secret) ? defaultValue : secret;
     }
 
     public static bool ReadBool(string name, bool defaultValue)

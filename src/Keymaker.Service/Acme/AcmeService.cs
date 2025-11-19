@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Keymaker.Model;
 using Keymaker.Service.Dns;
 using Keymaker.Service.Store;
 using Keymaker.Service.Acme.Dns;
