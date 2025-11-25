@@ -79,6 +79,8 @@ public sealed class KeyMakerService : IKeymakerService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Graceful shutdown requested.");
+
         CancelCurrentChallenge();
 
         return Task.CompletedTask;
