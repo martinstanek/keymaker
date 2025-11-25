@@ -9,6 +9,7 @@ builder.AddLogging();
 builder.Services.AddCors();
 builder.Services.AddKeymaker();
 builder.Services.AddOpenApiDocs();
+builder.Services.AddHealthChecks();
 builder.Services.ConfigureHandlers();
 builder.Services.ConfigureSerialization();
 
@@ -19,6 +20,7 @@ app.UseOpenApiDocs();
 app.UseKeymaker();
 app.UseApiEndpoints();
 app.UseCors(p => { p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
+app.MapHealthChecks("/health");
 app.Run();
 
 public partial class Program;

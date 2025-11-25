@@ -14,7 +14,7 @@ using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
 
-// TODO lifecycle management, docker kill signal, docker health, fluent validation
+// TODO lifecycle management, docker kill signal, fluent validation
 
 public sealed class KeyMakerService : IKeymakerService
 {

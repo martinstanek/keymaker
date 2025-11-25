@@ -5,4 +5,6 @@ ENV ASPNETCORE_HTTP_PORTS=80
 WORKDIR /app
 COPY . .
 
+HEALTHCHECK CMD curl --fail http://localhost/healthz || exit 1
+
 ENTRYPOINT ["dotnet", "Keymaker.Api.dll"]
