@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Keymaker.Service.Configuration;
 using Keymaker.Service.Configuration.Service;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

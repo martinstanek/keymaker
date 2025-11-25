@@ -1,6 +1,5 @@
 using Certes;
 using Keymaker.Service.Configuration.Certificate;
-using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Extensions;
 

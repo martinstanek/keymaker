@@ -9,16 +9,15 @@ using Keymaker.Service.Dns;
 using Keymaker.Service.Model;
 using Keymaker.Service.Store;
 using Keymaker.Service.Acme.Dns;
-using Keymaker.Service.Configuration;
 using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Factories;
 using Keymaker.Service.Acme.Http;
-using Certes;
-using Certes.Acme;
-using Certes.Acme.Resource;
 using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Configuration.CloudFlare;
 using Keymaker.Service.Configuration.Service;
+using Certes;
+using Certes.Acme;
+using Certes.Acme.Resource;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -175,7 +174,7 @@ public sealed class KeymakerApiTests
                 Organization = "awitec",
                 OrganizationUnit = "HQ",
                 Password = "secret",
-                State = "Zuerich"
+                State = "Zürich"
             };
         }
 

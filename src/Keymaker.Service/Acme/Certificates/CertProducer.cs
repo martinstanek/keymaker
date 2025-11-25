@@ -5,7 +5,6 @@ using Keymaker.Service.Extensions;
 using Certes;
 using Certes.Acme;
 using Keymaker.Service.Configuration.Certificate;
-using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme.Certificates;
 

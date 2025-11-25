@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
-using Keymaker.Service.Configuration;
 using Keymaker.Service.Configuration.Azure;
 using Keymaker.Service.Model;
-using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Utilities.Encoders; // TODO: ??
 
 namespace Keymaker.Service.Store;
@@ -64,6 +63,8 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
             Obtained = cert.Value.Properties.CreatedOn?.DateTime ?? DateTime.MinValue
         };
     }
+
+    public string StoreName => _azKeyVaultStoreConfig.CertificateName;
 
     private static CertificateClient GetCertificateClient(AzureConfiguration azConfiguration, AzureKeyVaultStoreConfiguration azKeyVaultStoreConfiguration)
     {

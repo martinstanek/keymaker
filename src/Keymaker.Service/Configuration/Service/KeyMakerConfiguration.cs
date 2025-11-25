@@ -22,6 +22,19 @@ public sealed record KeyMakerConfiguration
     public required int RenewEveryHours { get; init; }
 
     public required int CheckForExpirationEveryMinutes { get; init; }
+
+    public static KeyMakerConfiguration Empty => new()
+    {
+        DnsMode = DnsMode.CloudFlare,
+        StorageMode = StorageMode.Volume,
+        ChallengeMode = ChallengeMode.Http,
+        IsAutoRenewalEnabled = false,
+        IsWebHookEnabled = false,
+        IsChallengeTriggerEnabled = false,
+        WebHookUrl = string.Empty,
+        RenewEveryHours = 0,
+        CheckForExpirationEveryMinutes = 0
+    };
 }
 
 internal sealed class KeyMakerConfigurationValidator : AbstractValidator<KeyMakerConfiguration>

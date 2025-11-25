@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
-using Keymaker.Service.Configuration.Azure;
 using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Configuration.Service;
-using Keymaker.Service.Configuration.Volume;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Extensions;
 using Keymaker.Service.Integrations;
@@ -24,8 +22,6 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly IAcmeService _acmeService;
     private readonly IRenewalChecker _checker;
     private readonly ILogger<KeyMakerService> _logger;
-    private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
-    private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
     private readonly CertificateConfiguration _certificateConfiguration;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
 
@@ -39,9 +35,7 @@ public sealed class KeyMakerService : IKeymakerService
         ICertStoreService storeService,
         IWebHookService webHookService,
         IRenewalChecker checker,
-        AzureKeyVaultStoreConfiguration azureVaultConfiguration,
         KeyMakerConfiguration keyMakerConfiguration,
-        VolumeStoreConfiguration volumeStoreConfiguration,
         CertificateConfiguration certificateConfiguration,
         ILogger<KeyMakerService> logger)
     {
@@ -50,8 +44,6 @@ public sealed class KeyMakerService : IKeymakerService
         _webHookService = webHookService;
         _checker = checker;
         _keyMakerConfiguration = keyMakerConfiguration;
-        _azureVaultConfiguration = azureVaultConfiguration;
-        _volumeStoreConfiguration = volumeStoreConfiguration;
         _certificateConfiguration = certificateConfiguration;
         _logger = logger;
 
@@ -130,7 +122,7 @@ public sealed class KeyMakerService : IKeymakerService
             Domain = lastCert.IsEmpty() ? _certificateConfiguration.Domain : lastCert.Domain,
             Issuer = lastCert.Issuer,
             Server = GetVersion(),
-            StoreTarget = GetStoreTarget(),
+            StoreTarget = _storeService.StoreName,
             Organization = _certificateConfiguration.GetOrganisation()
         };
 
@@ -191,16 +183,6 @@ public sealed class KeyMakerService : IKeymakerService
         };
 
         return allowedStates.Contains(_challengeStatus);
-    }
-
-    private string GetStoreTarget()
-    {
-        return _keyMakerConfiguration.StorageMode switch
-        {
-            StorageMode.KeyVault => _azureVaultConfiguration.CertificateName,
-            StorageMode.Volume => _volumeStoreConfiguration.ToplevelFolder,
-            _ => throw new NotSupportedException()
-        };
     }
 
     private string GetVersion()

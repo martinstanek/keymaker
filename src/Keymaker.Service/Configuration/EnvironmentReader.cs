@@ -10,7 +10,7 @@ namespace Keymaker.Service.Configuration;
 
 public static class EnvironmentReader
 {
-    public static CertificateConfiguration GetCertificateParametersFromEnvironment()
+    public static CertificateConfiguration GetCertificateConfigurationFromEnvironment()
     {
         return new CertificateConfiguration
         {

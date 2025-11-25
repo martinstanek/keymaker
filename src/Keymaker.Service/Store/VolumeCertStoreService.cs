@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.Extensions.Logging;
-using Keymaker.Service.Configuration;
 using Keymaker.Service.Configuration.Volume;
 using Keymaker.Service.Model;
 
@@ -85,6 +84,8 @@ public sealed class VolumeCertStoreService : ICertStoreService
 
         return result.MaxBy(c => c.Obtained) ?? CertificateInfo.Empty;
     }
+
+    public string StoreName => _configuration.ToplevelFolder;
 
     private static async Task<CertificateInfo> FromInfoAsync(string infoPath)
     {

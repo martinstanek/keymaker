@@ -8,4 +8,6 @@ public interface ICertStoreService
     Task PersistCertificatesAsync(CertificatePersistenceInfo persistenceInfo);
 
     Task<CertificateInfo> GetMostRecentCertificateInfoAsync();
+
+    string StoreName { get; }
 }

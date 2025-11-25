@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Keymaker.Service.Configuration;
 using Keymaker.Service.Configuration.Service;
 using Keymaker.Service.Store;
 using Microsoft.Extensions.Logging;

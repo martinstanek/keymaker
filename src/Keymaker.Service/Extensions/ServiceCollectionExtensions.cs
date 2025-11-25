@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Acme.Callback;
@@ -25,54 +26,16 @@ public static class ServiceCollectionExtensions
     {
         public IServiceCollection AddKeymaker()
         {
-            var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
-            var certificateConfig = EnvironmentReader.GetCertificateParametersFromEnvironment();
-            var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
-            var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfigurationFromEnvironment();
-            var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
-            var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
-            var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
+            var keyMakerConfig = AddConfiguration(services);
 
             if (keyMakerConfig.IsAutoRenewalEnabled)
             {
                 services.AddHostedService<CheckerBackgroundService>();
             }
 
-            new KeyMakerConfigurationValidator().ValidateAndThrow(keyMakerConfig);
-            new CertificateConfigurationValidator().ValidateAndThrow(certificateConfig);
-
-            switch (keyMakerConfig.DnsMode)
-            {
-                case DnsMode.Azure:
-                    new AzureConfigurationValidator().ValidateAndThrow(azureConfig);
-                    new AzureDnsServiceConfigurationValidator().ValidateAndThrow(azureDnsServiceConfig);
-                    break;
-                case DnsMode.CloudFlare:
-                    new CloudFlareDnsServiceConfigurationValidator().ValidateAndThrow(cloudFlareDnsServiceConfig);
-                    break;
-            }
-
-            switch (keyMakerConfig.StorageMode)
-            {
-                case StorageMode.Volume:
-                    new VolumeStoreConfigurationValidator().ValidateAndThrow(volumeStoreConfig);
-                    break;
-                case StorageMode.KeyVault:
-                    new AzureConfigurationValidator().ValidateAndThrow(azureConfig);
-                    new AzureKeyVaultStoreConfigurationValidator().ValidateAndThrow(azureKeyVaultStoreConfig);
-                    break;
-            }
-
             return services
                 .AddDns(keyMakerConfig.DnsMode)
                 .AddStore(keyMakerConfig.StorageMode)
-                .AddSingleton(azureConfig)
-                .AddSingleton(keyMakerConfig)
-                .AddSingleton(certificateConfig)
-                .AddSingleton(volumeStoreConfig)
-                .AddSingleton(azureDnsServiceConfig)
-                .AddSingleton(azureKeyVaultStoreConfig)
-                .AddSingleton(cloudFlareDnsServiceConfig)
                 .AddSingleton<IWebHookService, WebHookService>()
                 .AddSingleton<IRenewalChecker, RenewalChecker>()
                 .AddSingleton<ICertProducer, CertProducer>()
@@ -98,6 +61,75 @@ public static class ServiceCollectionExtensions
             return mode == DnsMode.CloudFlare
                 ? services.AddSingleton<IDnsService, CloudFlareDnsService>()
                 : services.AddSingleton<IDnsService, AzureDnsService>();
+        }
+
+        private IServiceCollection AddOrValidateConfiguration<TConf, TVal>(TConf envConfig, Action<TConf>? process = null) where TVal : IValidator<TConf>, new() where TConf : class
+        {
+            return services.AddSingleton(sp =>
+            {
+                var presentConfig = sp.GetService<TConf>();
+                var validator = new TVal();
+
+                if (presentConfig is not null)
+                {
+                    validator.ValidateAndThrow(presentConfig);
+                }
+                else
+                {
+                    validator.ValidateAndThrow(envConfig);
+                }
+
+                var validatedConfig = presentConfig ?? envConfig;
+
+                process?.Invoke(validatedConfig);
+
+                return validatedConfig;
+            });
+        }
+
+        private KeyMakerConfiguration AddConfiguration()
+        {
+            var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
+            var certificateConfig = EnvironmentReader.GetCertificateConfigurationFromEnvironment();
+            var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfigurationFromEnvironment();
+            var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
+            var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
+            var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
+            var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
+            var validatedKeymakerConfig = KeyMakerConfiguration.Empty;
+
+            services
+                .AddOrValidateConfiguration<CertificateConfiguration, CertificateConfigurationValidator>(certificateConfig)
+                .AddOrValidateConfiguration<KeyMakerConfiguration, KeyMakerConfigurationValidator>(keyMakerConfig, kc =>
+                {
+                    validatedKeymakerConfig = kc;
+                });
+
+            if (validatedKeymakerConfig.DnsMode == DnsMode.Azure)
+            {
+                services
+                    .AddOrValidateConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
+                    .AddOrValidateConfiguration<AzureDnsServiceConfiguration, AzureDnsServiceConfigurationValidator>(azureDnsServiceConfig);
+            }
+
+            if (validatedKeymakerConfig.DnsMode == DnsMode.CloudFlare)
+            {
+                services.AddOrValidateConfiguration<CloudFlareDnsServiceConfiguration, CloudFlareDnsServiceConfigurationValidator>(cloudFlareDnsServiceConfig);
+            }
+
+            if (validatedKeymakerConfig.StorageMode == StorageMode.Volume)
+            {
+                services.AddOrValidateConfiguration<VolumeStoreConfiguration, VolumeStoreConfigurationValidator>(volumeStoreConfig);
+            }
+
+            if (validatedKeymakerConfig.StorageMode == StorageMode.KeyVault)
+            {
+                services
+                    .AddOrValidateConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
+                    .AddOrValidateConfiguration<AzureKeyVaultStoreConfiguration, AzureKeyVaultStoreConfigurationValidator>(azureKeyVaultStoreConfig);
+            }
+
+            return validatedKeymakerConfig;
         }
     }
 }
