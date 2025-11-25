@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Model;
 using Keymaker.Service.Store;
 
@@ -8,7 +9,7 @@ namespace Keymaker.Service.Acme;
 
 public interface IAcmeService
 {
-    Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateParameters certificateParameters, CancellationToken cancellationToken);
+    Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateConfiguration certificateConfiguration, CancellationToken cancellationToken);
 
     event EventHandler DnsValueSet;
 

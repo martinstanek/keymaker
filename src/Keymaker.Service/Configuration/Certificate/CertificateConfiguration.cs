@@ -1,6 +1,8 @@
-﻿namespace Keymaker.Service.Model;
+﻿using FluentValidation;
 
-public sealed record CertificateParameters
+namespace Keymaker.Service.Configuration.Certificate;
+
+public sealed record CertificateConfiguration
 {
     public required string Contact { get; init; } = string.Empty;
 
@@ -19,17 +21,17 @@ public sealed record CertificateParameters
     public required string Organization { get; init; } = string.Empty;
 
     public required string OrganizationUnit { get; init; } = string.Empty;
+}
 
-    public static CertificateParameters Empty => new()
+internal sealed class CertificateConfigurationValidator : AbstractValidator<CertificateConfiguration>
+{
+    public CertificateConfigurationValidator()
     {
-        Contact = string.Empty,
-        Domain = string.Empty,
-        CertificateName = string.Empty,
-        Password = string.Empty,
-        CountryName = string.Empty,
-        State = string.Empty,
-        Locality = string.Empty,
-        Organization = string.Empty,
-        OrganizationUnit = string.Empty
-    };
+        RuleFor(r => r.Contact).NotEmpty();
+        RuleFor(r => r.Domain).NotEmpty();
+        RuleFor(r => r.CertificateName).NotEmpty();
+        RuleFor(r => r.Password).NotEmpty();
+        RuleFor(r => r.CountryName).NotEmpty();
+        RuleFor(r => r.Organization).NotEmpty();
+    }
 }

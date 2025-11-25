@@ -13,6 +13,7 @@ using Keymaker.Service.Acme.Certificates;
 using Keymaker.Service.Acme.Http;
 using Certes;
 using Certes.Acme;
+using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Acme;
@@ -49,35 +50,35 @@ public sealed class AcmeService : IAcmeService
         _logger = logger;
     }
 
-    public Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    public Task RequestCertificateAsync(ChallengeMode challengeMode, CertificateConfiguration certificateConfiguration, CancellationToken cancellationToken)
     {
         return challengeMode switch
         {
-            ChallengeMode.Dns => RequestCertificateViaDnsChallengeAsync(certificateParameters, cancellationToken),
-            ChallengeMode.Http => RequestCertificateViaHttpChallengeAsync(certificateParameters, cancellationToken),
+            ChallengeMode.Dns => RequestCertificateViaDnsChallengeAsync(certificateConfiguration, cancellationToken),
+            ChallengeMode.Http => RequestCertificateViaHttpChallengeAsync(certificateConfiguration, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
 
-    private async Task RequestCertificateViaDnsChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    private async Task RequestCertificateViaDnsChallengeAsync(CertificateConfiguration certificateConfiguration, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
+        _logger.LogInformation($"Getting the certificate for {certificateConfiguration.Domain}");
 
-        var (acme, order) = await PlaceOrderAsync(certificateParameters);
+        var (acme, order) = await PlaceOrderAsync(certificateConfiguration);
 
         _logger.LogInformation($"Order negotiated {order.Location}");
 
         DnsChallengeTriggered.Invoke(this, EventArgs.Empty);
 
         await PerformChallengeAsync(acme, order, isDnsChallenge: true, cancellationToken);
-        await FinaliseOrderAsync(order, certificateParameters);
+        await FinaliseOrderAsync(order, certificateConfiguration);
     }
 
-    private async Task RequestCertificateViaHttpChallengeAsync(CertificateParameters certificateParameters, CancellationToken cancellationToken)
+    private async Task RequestCertificateViaHttpChallengeAsync(CertificateConfiguration certificateConfiguration, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Getting the certificate for {certificateParameters.Domain}");
+        _logger.LogInformation($"Getting the certificate for {certificateConfiguration.Domain}");
 
-        var (acme, order) = await PlaceOrderAsync(certificateParameters);
+        var (acme, order) = await PlaceOrderAsync(certificateConfiguration);
 
         _logger.LogInformation($"Order negotiated {order.Location}");
 
@@ -86,16 +87,16 @@ public sealed class AcmeService : IAcmeService
         HttpChallengeTriggered.Invoke(this, EventArgs.Empty);
 
         await WaitForHttpCallbackAsync(cancellationToken);
-        await FinaliseOrderAsync(order, certificateParameters);
+        await FinaliseOrderAsync(order, certificateConfiguration);
     }
 
-    private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateParameters certificateParameters)
+    private async Task<(IAcmeContext acmeContext, IOrderContext orderContext)> PlaceOrderAsync(CertificateConfiguration certificateConfiguration)
     {
         var acme = _acmeContextFactory.GetAcmeContext();
 
-        await acme.NewAccount(certificateParameters.Contact, termsOfServiceAgreed: true);
+        await acme.NewAccount(certificateConfiguration.Contact, termsOfServiceAgreed: true);
 
-        var order = await acme.NewOrder([certificateParameters.Domain]);
+        var order = await acme.NewOrder([certificateConfiguration.Domain]);
 
         return (acme, order);
     }
@@ -126,11 +127,11 @@ public sealed class AcmeService : IAcmeService
         }
     }
 
-    private async Task FinaliseOrderAsync(IOrderContext order, CertificateParameters certificateParameters)
+    private async Task FinaliseOrderAsync(IOrderContext order, CertificateConfiguration certificateConfiguration)
     {
         _logger.LogInformation("Generating the certificate");
 
-        var cert = await _certProducer.BuildCertificateAsync(order, certificateParameters);
+        var cert = await _certProducer.BuildCertificateAsync(order, certificateConfiguration);
         var certPersistenceInfo = new CertificatePersistenceInfo
         {
             Issuer = cert.Issuer,
@@ -142,7 +143,7 @@ public sealed class AcmeService : IAcmeService
             Base64Pfx = cert.Base64,
             Base64FullChainPem = Convert.ToBase64String(Encoding.ASCII.GetBytes(cert.Pem)),
             Base64PrivateKeyPem = Convert.ToBase64String(Encoding.ASCII.GetBytes(cert.PemKey)),
-            Password = certificateParameters.Password
+            Password = certificateConfiguration.Password
         };
 
         Succeeded.Invoke(this, certPersistenceInfo);

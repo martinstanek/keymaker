@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using CloudFlareDns;
 using CloudFlareDns.Objects.Record;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.CloudFlare;
 
 namespace Keymaker.Service.Dns;
 

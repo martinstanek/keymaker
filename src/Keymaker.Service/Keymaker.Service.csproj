@@ -12,6 +12,7 @@
         <PackageReference Include="Azure.Security.KeyVault.Certificates" Version="4.8.0" />
         <PackageReference Include="Azure.Identity" Version="1.17.0" />
         <PackageReference Include="Azure.ResourceManager.Dns" Version="1.2.0-beta.2" />
+        <PackageReference Include="FluentValidation" Version="12.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
         <PackageReference Include="Certes" Version="3.0.4" />

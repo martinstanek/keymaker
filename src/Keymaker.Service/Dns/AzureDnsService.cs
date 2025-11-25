@@ -7,6 +7,7 @@ using Azure.Identity;
 using Azure.ResourceManager.Dns;
 using Azure.ResourceManager.Dns.Models;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Azure;
 
 namespace Keymaker.Service.Dns;
 

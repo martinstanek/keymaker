@@ -16,6 +16,9 @@ using Keymaker.Service.Acme.Http;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
+using Keymaker.Service.Configuration.Certificate;
+using Keymaker.Service.Configuration.CloudFlare;
+using Keymaker.Service.Configuration.Service;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -101,7 +104,7 @@ public sealed class KeymakerApiTests
             DnsProvider.Setup(s => s.GetDnsTxtValue(It.IsAny<IChallengeContext>(), It.IsAny<IAcmeContext>())).Returns("key");
             DnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             DnsService.Setup(s => s.GetTxtEntryAsync()).ReturnsAsync("key");
-            CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateParameters>())).ReturnsAsync(cert);
+            CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateConfiguration>())).ReturnsAsync(cert);
             CertStore.Setup(s => s.GetMostRecentCertificateInfoAsync()).ReturnsAsync(certInfo);
             HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             HttpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
@@ -160,9 +163,9 @@ public sealed class KeymakerApiTests
             };
         }
 
-        private static CertificateParameters GetTestCertificateParams()
+        private static CertificateConfiguration GetTestCertificateParams()
         {
-            return new CertificateParameters
+            return new CertificateConfiguration
             {
                 CertificateName = "certificate.name",
                 Contact = "test@example.com",

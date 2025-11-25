@@ -1,6 +1,7 @@
+using FluentValidation;
 using Keymaker.Service.Model;
 
-namespace Keymaker.Service.Configuration;
+namespace Keymaker.Service.Configuration.Service;
 
 public sealed record KeyMakerConfiguration
 {
@@ -21,6 +22,14 @@ public sealed record KeyMakerConfiguration
     public required int RenewEveryHours { get; init; }
 
     public required int CheckForExpirationEveryMinutes { get; init; }
+}
 
-
+internal sealed class KeyMakerConfigurationValidator : AbstractValidator<KeyMakerConfiguration>
+{
+    public KeyMakerConfigurationValidator()
+    {
+        RuleFor(r => r.WebHookUrl).NotEmpty().When(w => w.IsWebHookEnabled);
+        RuleFor(r => r.RenewEveryHours).GreaterThan(0).When(w => w.IsAutoRenewalEnabled);
+        RuleFor(r => r.CheckForExpirationEveryMinutes).GreaterThan(0).When(w => w.IsAutoRenewalEnabled);
+    }
 }

@@ -1,11 +1,14 @@
 using System;
-using System.Reflection;
 using System.Threading;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Keymaker.Model;
 using Keymaker.Service.Acme;
-using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Azure;
+using Keymaker.Service.Configuration.Certificate;
+using Keymaker.Service.Configuration.Service;
+using Keymaker.Service.Configuration.Volume;
 using Keymaker.Service.Expiration;
 using Keymaker.Service.Extensions;
 using Keymaker.Service.Integrations;
@@ -13,8 +16,6 @@ using Keymaker.Service.Model;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service;
-
-// TODO lifecycle management, docker kill signal, fluent validation
 
 public sealed class KeyMakerService : IKeymakerService
 {
@@ -25,7 +26,7 @@ public sealed class KeyMakerService : IKeymakerService
     private readonly ILogger<KeyMakerService> _logger;
     private readonly AzureKeyVaultStoreConfiguration _azureVaultConfiguration;
     private readonly VolumeStoreConfiguration _volumeStoreConfiguration;
-    private readonly CertificateParameters _certificateParameters;
+    private readonly CertificateConfiguration _certificateConfiguration;
     private readonly KeyMakerConfiguration _keyMakerConfiguration;
 
     private CertificateRequestStatus _challengeStatus = CertificateRequestStatus.Idle;
@@ -41,7 +42,7 @@ public sealed class KeyMakerService : IKeymakerService
         AzureKeyVaultStoreConfiguration azureVaultConfiguration,
         KeyMakerConfiguration keyMakerConfiguration,
         VolumeStoreConfiguration volumeStoreConfiguration,
-        CertificateParameters certificateParameters,
+        CertificateConfiguration certificateConfiguration,
         ILogger<KeyMakerService> logger)
     {
         _acmeService = acmeService;
@@ -51,7 +52,7 @@ public sealed class KeyMakerService : IKeymakerService
         _keyMakerConfiguration = keyMakerConfiguration;
         _azureVaultConfiguration = azureVaultConfiguration;
         _volumeStoreConfiguration = volumeStoreConfiguration;
-        _certificateParameters = certificateParameters;
+        _certificateConfiguration = certificateConfiguration;
         _logger = logger;
 
         _checker.NextChallengeChecked += OnNextChallengeChecked;
@@ -114,8 +115,8 @@ public sealed class KeyMakerService : IKeymakerService
         var lastCert = await GetMostRecentCertificateInfoAsync();
         var info = new ChallengeInfo
         {
-            Contact = _certificateParameters.Contact,
-            CertificateName = _certificateParameters.CertificateName,
+            Contact = _certificateConfiguration.Contact,
+            CertificateName = _certificateConfiguration.CertificateName,
             DnsMode = _keyMakerConfiguration.DnsMode.ToString(),
             Status = _challengeStatus.ToString(),
             ChallengeMode = _keyMakerConfiguration.ChallengeMode.ToString(),
@@ -126,11 +127,11 @@ public sealed class KeyMakerService : IKeymakerService
             NextRenewal = _nextChallenge.IsEmpty() ? null : _nextChallenge.NextNegotiation,
             Expiry = lastCert.IsEmpty() ? null : lastCert.Expiry,
             Obtained = lastCert.IsEmpty() ? null : lastCert.Obtained,
-            Domain = lastCert.IsEmpty() ? _certificateParameters.Domain : lastCert.Domain,
+            Domain = lastCert.IsEmpty() ? _certificateConfiguration.Domain : lastCert.Domain,
             Issuer = lastCert.Issuer,
             Server = GetVersion(),
             StoreTarget = GetStoreTarget(),
-            Organization = _certificateParameters.GetOrganisation()
+            Organization = _certificateConfiguration.GetOrganisation()
         };
 
         return info;
@@ -160,7 +161,7 @@ public sealed class KeyMakerService : IKeymakerService
         var linkedToken = _challengeTokenSource.Token;
 
         Task.Factory.StartNew(
-            () => _acmeService.RequestCertificateAsync(_keyMakerConfiguration.ChallengeMode, _certificateParameters, linkedToken),
+            () => _acmeService.RequestCertificateAsync(_keyMakerConfiguration.ChallengeMode, _certificateConfiguration, linkedToken),
             linkedToken,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);

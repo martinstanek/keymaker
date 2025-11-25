@@ -1,3 +1,8 @@
+using Keymaker.Service.Configuration.Azure;
+using Keymaker.Service.Configuration.Certificate;
+using Keymaker.Service.Configuration.CloudFlare;
+using Keymaker.Service.Configuration.Service;
+using Keymaker.Service.Configuration.Volume;
 using Keymaker.Service.Model;
 using Keymaker.Service.Support;
 
@@ -5,9 +10,9 @@ namespace Keymaker.Service.Configuration;
 
 public static class EnvironmentReader
 {
-    public static CertificateParameters GetCertificateParametersFromEnvironment()
+    public static CertificateConfiguration GetCertificateParametersFromEnvironment()
     {
-        return new CertificateParameters
+        return new CertificateConfiguration
         {
             Contact = Env.ReadString("KEYMAKER_CONTACT", secretFile: "KEYMAKER_CONTACT_FILE"),
             Domain = Env.ReadString("KEYMAKER_DOMAIN"),

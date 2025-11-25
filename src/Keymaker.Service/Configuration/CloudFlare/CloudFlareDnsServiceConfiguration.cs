@@ -1,4 +1,6 @@
-namespace Keymaker.Service.Configuration;
+using FluentValidation;
+
+namespace Keymaker.Service.Configuration.CloudFlare;
 
 public sealed record CloudFlareDnsServiceConfiguration
 {
@@ -20,4 +22,16 @@ public sealed record CloudFlareDnsServiceConfiguration
         DnsChallengeCheckDomain = string.Empty,
         DnsChallengeSetDomain = string.Empty
     };
+}
+
+internal sealed class CloudFlareDnsServiceConfigurationValidator : AbstractValidator<CloudFlareDnsServiceConfiguration>
+{
+    public CloudFlareDnsServiceConfigurationValidator()
+    {
+        RuleFor(r => r.Zone).NotEmpty();
+        RuleFor(r => r.Email).NotEmpty();
+        RuleFor(r => r.Key).NotEmpty();
+        RuleFor(r => r.DnsChallengeCheckDomain).NotEmpty();
+        RuleFor(r => r.DnsChallengeSetDomain).NotEmpty();
+    }
 }

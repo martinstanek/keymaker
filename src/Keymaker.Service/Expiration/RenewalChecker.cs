@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Service;
 using Keymaker.Service.Store;
 
 namespace Keymaker.Service.Expiration;

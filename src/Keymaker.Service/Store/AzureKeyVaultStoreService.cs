@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Azure;
 using Keymaker.Service.Model;
 using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Utilities.Encoders; // TODO: ??

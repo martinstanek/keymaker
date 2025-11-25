@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.Extensions.Logging;
 using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Volume;
 using Keymaker.Service.Model;
 
 namespace Keymaker.Service.Store;

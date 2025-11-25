@@ -1,4 +1,4 @@
-namespace Keymaker.Service.Configuration;
+namespace Keymaker.Service.Configuration.Certificate;
 
 public enum CertificateRequestChallengeType
 {
