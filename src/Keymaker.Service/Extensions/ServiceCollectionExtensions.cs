@@ -28,6 +28,11 @@ public static class ServiceCollectionExtensions
         {
             var keyMakerConfig = AddConfiguration(services);
 
+            if (keyMakerConfig is null)
+            {
+                return services;
+            }
+
             if (keyMakerConfig.IsAutoRenewalEnabled)
             {
                 services.AddHostedService<CheckerBackgroundService>();
@@ -63,82 +68,63 @@ public static class ServiceCollectionExtensions
                 : services.AddSingleton<IDnsService, AzureDnsService>();
         }
 
-        // TODO: clean-up
-        private IServiceCollection AddOrValidateConfiguration<TConf, TVal>(TConf envConfig, Action<TConf>? process = null) where TVal : IValidator<TConf>, new() where TConf : class
+        private IServiceCollection AddConfiguration<TConf, TVal>(TConf envConfig) where TVal : IValidator<TConf>, new() where TConf : class
         {
-            return services.AddSingleton(sp =>
-            {
-                var presentConfig = sp.GetService<TConf>();
-                var validator = new TVal();
+            var validator = new TVal();
 
-                if (presentConfig is not null)
-                {
-                    validator.ValidateAndThrow(presentConfig);
-                }
-                else
-                {
-                    validator.ValidateAndThrow(envConfig);
-                }
+            validator.ValidateAndThrow(envConfig);
 
-                var validatedConfig = presentConfig ?? envConfig;
-
-                process?.Invoke(validatedConfig);
-
-                return validatedConfig;
-            });
+            return services.AddSingleton(envConfig);
         }
 
-        private KeyMakerConfiguration AddConfiguration()
+        private KeyMakerConfiguration? AddConfiguration()
         {
-            var keyMakerConfig = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
+            var keyMakerConfiguration = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
             var certificateConfig = EnvironmentReader.GetCertificateConfigurationFromEnvironment();
             var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfigurationFromEnvironment();
             var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
             var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
             var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
             var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
-            var validatedKeymakerConfig = KeyMakerConfiguration.Empty;
 
             try
             {
                 services
-                    .AddOrValidateConfiguration<CertificateConfiguration, CertificateConfigurationValidator>(certificateConfig)
-                    .AddOrValidateConfiguration<KeyMakerConfiguration, KeyMakerConfigurationValidator>(keyMakerConfig, kc =>
-                    {
-                        validatedKeymakerConfig = kc;
-                    });
+                    .AddConfiguration<KeyMakerConfiguration, KeyMakerConfigurationValidator>(keyMakerConfiguration)
+                    .AddConfiguration<CertificateConfiguration, CertificateConfigurationValidator>(certificateConfig);
 
-                if (validatedKeymakerConfig.DnsMode == DnsMode.Azure)
+                if (keyMakerConfiguration.DnsMode == DnsMode.Azure)
                 {
                     services
-                        .AddOrValidateConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
-                        .AddOrValidateConfiguration<AzureDnsServiceConfiguration, AzureDnsServiceConfigurationValidator>(azureDnsServiceConfig);
+                        .AddConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
+                        .AddConfiguration<AzureDnsServiceConfiguration, AzureDnsServiceConfigurationValidator>(azureDnsServiceConfig);
                 }
 
-                if (validatedKeymakerConfig.DnsMode == DnsMode.CloudFlare)
+                if (keyMakerConfiguration.DnsMode == DnsMode.CloudFlare)
                 {
-                    services.AddOrValidateConfiguration<CloudFlareDnsServiceConfiguration, CloudFlareDnsServiceConfigurationValidator>(cloudFlareDnsServiceConfig);
+                    services.AddConfiguration<CloudFlareDnsServiceConfiguration, CloudFlareDnsServiceConfigurationValidator>(cloudFlareDnsServiceConfig);
                 }
 
-                if (validatedKeymakerConfig.StorageMode == StorageMode.Volume)
+                if (keyMakerConfiguration.StorageMode == StorageMode.Volume)
                 {
-                    services.AddOrValidateConfiguration<VolumeStoreConfiguration, VolumeStoreConfigurationValidator>(volumeStoreConfig);
+                    services.AddConfiguration<VolumeStoreConfiguration, VolumeStoreConfigurationValidator>(volumeStoreConfig);
                 }
 
-                if (validatedKeymakerConfig.StorageMode == StorageMode.KeyVault)
+                if (keyMakerConfiguration.StorageMode == StorageMode.KeyVault)
                 {
                     services
-                        .AddOrValidateConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
-                        .AddOrValidateConfiguration<AzureKeyVaultStoreConfiguration, AzureKeyVaultStoreConfigurationValidator>(azureKeyVaultStoreConfig);
+                        .AddConfiguration<AzureConfiguration, AzureConfigurationValidator>(azureConfig)
+                        .AddConfiguration<AzureKeyVaultStoreConfiguration, AzureKeyVaultStoreConfigurationValidator>(azureKeyVaultStoreConfig);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                throw;
+
+                return null;
             }
 
-            return validatedKeymakerConfig;
+            return keyMakerConfiguration;
         }
     }
 }

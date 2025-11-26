@@ -13,11 +13,11 @@ public static class ApplicationBuilderExtensions
 
     public static IApplicationBuilder UseKeymaker(this IApplicationBuilder app)
     {
-        var callBack = app.ApplicationServices.GetRequiredService<IAcmeCallback>();
+        var callBack = app.ApplicationServices.GetService<IAcmeCallback>();
 
         if (callBack == null)
         {
-            throw new InvalidOperationException();
+            return app;
         }
 
         app.Map(WellKnownAcmeChallengeUrl, sub =>
