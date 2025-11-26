@@ -59,7 +59,7 @@ public sealed class KeyMakerService : IKeymakerService
     {
         var challengeInfo = await GetChallengeInfoAsync();
 
-        _logger.LogInformation($"Awitec Keymaker");
+        _logger.LogInformation("Awitec Keymaker");
         _logger.LogInformation($"Server: {challengeInfo.Server}");
         _logger.LogInformation($"CertificateName: {challengeInfo.CertificateName}");
         _logger.LogInformation($"Domain: {challengeInfo.Domain}");
