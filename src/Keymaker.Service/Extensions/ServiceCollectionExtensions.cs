@@ -79,13 +79,13 @@ public static class ServiceCollectionExtensions
 
         private KeyMakerConfiguration? AddConfiguration()
         {
-            var keyMakerConfiguration = EnvironmentReader.GetKeyMakerConfigurationFromEnvironment();
-            var certificateConfig = EnvironmentReader.GetCertificateConfigurationFromEnvironment();
-            var volumeStoreConfig = EnvironmentReader.GetVolumeStoreConfigurationFromEnvironment();
-            var azureConfig = EnvironmentReader.GetAzureConfigurationFromEnvironment();
-            var azureDnsServiceConfig = EnvironmentReader.GetAzureDnsServiceConfigurationFromEnvironment();
-            var azureKeyVaultStoreConfig = EnvironmentReader.GetAzureKeyVaultConfigurationFromEnvironment();
-            var cloudFlareDnsServiceConfig = EnvironmentReader.GetCloudFlareDnsServiceConfigurationFromEnvironment();
+            var keyMakerConfiguration = EnvironmentConfiguration.ReadKeyMakerConfiguration();
+            var certificateConfig = EnvironmentConfiguration.ReadCertificateConfiguration();
+            var volumeStoreConfig = EnvironmentConfiguration.ReadVolumeStoreConfiguration();
+            var azureConfig = EnvironmentConfiguration.ReadAzureConfiguration();
+            var azureDnsServiceConfig = EnvironmentConfiguration.ReadAzureDnsServiceConfiguration();
+            var azureKeyVaultStoreConfig = EnvironmentConfiguration.ReadAzureKeyVaultConfiguration();
+            var cloudFlareDnsServiceConfig = EnvironmentConfiguration.ReadCloudFlareDnsServiceConfiguration();
 
             try
             {

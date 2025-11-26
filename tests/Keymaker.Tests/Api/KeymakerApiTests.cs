@@ -15,6 +15,8 @@ using Keymaker.Service.Acme.Http;
 using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Configuration.CloudFlare;
 using Keymaker.Service.Configuration.Service;
+using Keymaker.Service.Configuration;
+using Keymaker.Service.Configuration.Volume;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
@@ -29,7 +31,7 @@ public sealed class KeymakerApiTests
     [Fact]
     public async Task TriggerDnsChallenge_HappyPath_CertificateObtained()
     {
-        var context = new KeymakerApiTestsContext();
+        using var context = new KeymakerApiTestsContext();
         var client = context.GetClient(challengeMode: ChallengeMode.Dns);
 
         await client.TriggerChallengeAsync();
@@ -43,7 +45,7 @@ public sealed class KeymakerApiTests
     [Fact]
     public async Task TriggerHttpChallenge_HappyPath_CertificateObtained()
     {
-        var context = new KeymakerApiTestsContext();
+        using var context = new KeymakerApiTestsContext();
         var client = context.GetClient(challengeMode: ChallengeMode.Http);
 
         await client.TriggerChallengeAsync();
@@ -56,42 +58,22 @@ public sealed class KeymakerApiTests
         challengeInfoAsync.Domain.ShouldBe("example.com");
     }
 
-    private sealed class KeymakerApiTestsContext
+    private sealed class KeymakerApiTestsContext : IDisposable
     {
-        internal IKeymakerClient GetClient(ChallengeMode challengeMode)
+        public IKeymakerClient GetClient(ChallengeMode challengeMode)
         {
             var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([AcmeAuthContext.Object]);
+            var keyMakerConfig = GetKeyMakerConfiguration(challengeMode);
+            var storeConfig = GetTestVolumeStoreConfiguration();
+            var dnsConfig = GetTestDnsConfiguration();
+            var crtConfig = GetTestCertificateConfiguration();
+            var certInfo = GetCertificateInfo();
+            var cert = GetCertificate();
 
-            var cert = new Certificate
-            {
-                PemKey = "PemKey",
-                Pem = "Pem",
-                Base64 = "Base64",
-                Issuer = "issuer",
-                Domain = "example.com",
-                Expiry = DateTime.MinValue
-            };
-
-            var certInfo = new CertificateInfo
-            {
-                Domain = "example.com",
-                Expiry = DateTime.MaxValue,
-                Obtained = DateTime.MinValue,
-                Issuer = "Let's Encrypt"
-            };
-
-            var keyMakerConf = new KeyMakerConfiguration
-            {
-                ChallengeMode = challengeMode,
-                DnsMode = DnsMode.CloudFlare,
-                StorageMode = StorageMode.Volume,
-                IsAutoRenewalEnabled = false,
-                IsWebHookEnabled = false,
-                IsChallengeTriggerEnabled = true,
-                WebHookUrl = string.Empty,
-                RenewEveryHours = 0,
-                CheckForExpirationEveryMinutes = 0
-            };
+            EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructCertificateConfiguration(crtConfig));
+            EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructCloudFlareDnsServiceConfiguration(dnsConfig));
+            EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructVolumeStoreConfiguration(storeConfig));
+            EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructKeyMakerConfiguration(keyMakerConfig));
 
             AcmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
             AcmeContextFactory.Setup(s => s.GetAcmeContext()).Returns(AcmeContext.Object);
@@ -108,8 +90,6 @@ public sealed class KeymakerApiTests
             HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
             HttpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
 
-            var dnsConfig = GetTestDnsConfiguration();
-            var crtConfig = GetTestCertificateParams();
             var application = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
@@ -123,7 +103,7 @@ public sealed class KeymakerApiTests
                         services.AddSingleton(HttpProvider.Object);
                         services.AddSingleton(dnsConfig);
                         services.AddSingleton(crtConfig);
-                        services.AddSingleton(keyMakerConf);
+                        services.AddSingleton(keyMakerConfig);
                     });
                 });
 
@@ -132,7 +112,7 @@ public sealed class KeymakerApiTests
             return new KeymakerClient(httpClient);
         }
 
-        internal static async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 30)
+        public static async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 30)
         {
             var span = TimeSpan.FromSeconds(timeSpanSeconds);
             var token = new CancellationTokenSource(span).Token;
@@ -150,6 +130,19 @@ public sealed class KeymakerApiTests
             }
         }
 
+        public void Dispose()
+        {
+            var keyMakerConfig = GetKeyMakerConfiguration(ChallengeMode.Http);
+            var storeConfig = GetTestVolumeStoreConfiguration();
+            var dnsConfig = GetTestDnsConfiguration();
+            var crtConfig = GetTestCertificateConfiguration();
+
+            EnvironmentConfiguration.RemoveConfiguration(EnvironmentConfiguration.ConstructCertificateConfiguration(crtConfig));
+            EnvironmentConfiguration.RemoveConfiguration(EnvironmentConfiguration.ConstructCloudFlareDnsServiceConfiguration(dnsConfig));
+            EnvironmentConfiguration.RemoveConfiguration(EnvironmentConfiguration.ConstructVolumeStoreConfiguration(storeConfig));
+            EnvironmentConfiguration.RemoveConfiguration(EnvironmentConfiguration.ConstructKeyMakerConfiguration(keyMakerConfig));
+        }
+
         private static CloudFlareDnsServiceConfiguration GetTestDnsConfiguration()
         {
             return new CloudFlareDnsServiceConfiguration
@@ -162,7 +155,7 @@ public sealed class KeymakerApiTests
             };
         }
 
-        private static CertificateConfiguration GetTestCertificateParams()
+        private static CertificateConfiguration GetTestCertificateConfiguration()
         {
             return new CertificateConfiguration
             {
@@ -175,6 +168,54 @@ public sealed class KeymakerApiTests
                 OrganizationUnit = "HQ",
                 Password = "secret",
                 State = "Zürich"
+            };
+        }
+
+        private static VolumeStoreConfiguration GetTestVolumeStoreConfiguration()
+        {
+            return new VolumeStoreConfiguration
+            {
+                ToplevelFolder = "./test"
+            };
+        }
+
+        private static KeyMakerConfiguration GetKeyMakerConfiguration(ChallengeMode challengeMode)
+        {
+            return new KeyMakerConfiguration
+            {
+                ChallengeMode = challengeMode,
+                DnsMode = DnsMode.CloudFlare,
+                StorageMode = StorageMode.Volume,
+                IsAutoRenewalEnabled = false,
+                IsWebHookEnabled = false,
+                IsChallengeTriggerEnabled = true,
+                WebHookUrl = string.Empty,
+                RenewEveryHours = 0,
+                CheckForExpirationEveryMinutes = 0
+            };
+        }
+
+        private static CertificateInfo GetCertificateInfo()
+        {
+            return new CertificateInfo
+            {
+                Domain = "example.com",
+                Expiry = DateTime.MaxValue,
+                Obtained = DateTime.MinValue,
+                Issuer = "Let's Encrypt"
+            };
+        }
+
+        private static Certificate GetCertificate()
+        {
+            return new Certificate
+            {
+                PemKey = "PemKey",
+                Pem = "Pem",
+                Base64 = "Base64",
+                Issuer = "issuer",
+                Domain = "example.com",
+                Expiry = DateTime.MinValue
             };
         }
 
