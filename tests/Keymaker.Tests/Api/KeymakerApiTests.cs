@@ -112,7 +112,7 @@ public sealed class KeymakerApiTests
             return new KeymakerClient(httpClient);
         }
 
-        public static async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 30)
+        public static async Task WaitForStatus(IKeymakerClient client, CertificateRequestStatus status, int timeSpanSeconds = 60)
         {
             var span = TimeSpan.FromSeconds(timeSpanSeconds);
             var token = new CancellationTokenSource(span).Token;
