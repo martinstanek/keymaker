@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
 
             if (keyMakerConfig is null)
             {
-                return services;
+                return services.AddSingleton(new ServiceState(ValidationPassed: false));
             }
 
             if (keyMakerConfig.IsAutoRenewalEnabled)
@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
             return services
                 .AddDns(keyMakerConfig.DnsMode)
                 .AddStore(keyMakerConfig.StorageMode)
+                .AddSingleton(new ServiceState(ValidationPassed: true))
                 .AddSingleton<IWebHookService, WebHookService>()
                 .AddSingleton<IRenewalChecker, RenewalChecker>()
                 .AddSingleton<ICertProducer, CertProducer>()

@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Keymaker.Api.Configuration;
 using Keymaker.Api.Handlers;
+using Keymaker.Api.Health;
 
 namespace Keymaker.Api.Extensions;
 
@@ -9,7 +10,7 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection ConfigureHandlers()
+        public IServiceCollection ConfigureApiHandlers()
         {
             return services.AddSingleton<RequestHandler>();
         }
@@ -38,6 +39,13 @@ public static class ServiceCollectionExtensions
             return conf.IsOpenApiDocEnabled
                 ? services.AddEndpointsApiExplorer().AddSwaggerGen()
                 : services;
+        }
+
+        public IServiceCollection AddStateHealthCheck()
+        {
+            services.AddHealthChecks() .AddCheck<StartupHealthCheck>("State", tags: ["startup"]);
+
+            return services;
         }
     }
 }

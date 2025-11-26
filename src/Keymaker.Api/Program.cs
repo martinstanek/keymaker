@@ -9,8 +9,8 @@ builder.AddLogging();
 builder.Services.AddCors();
 builder.Services.AddKeymaker();
 builder.Services.AddOpenApiDocs();
-builder.Services.AddHealthChecks();
-builder.Services.ConfigureHandlers();
+builder.Services.AddStateHealthCheck();
+builder.Services.ConfigureApiHandlers();
 builder.Services.ConfigureSerialization();
 
 var app = builder.Build();
