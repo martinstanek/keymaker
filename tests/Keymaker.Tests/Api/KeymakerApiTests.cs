@@ -62,7 +62,18 @@ public sealed class KeymakerApiTests
     {
         public IKeymakerClient GetClient(ChallengeMode challengeMode)
         {
-            var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([AcmeAuthContext.Object]);
+            var acmeContextFactory = new Mock<IAcmeContextFactory>();
+            var acmeChallengeContext = new Mock<IChallengeContext>();
+            var acmeAuthContext = new Mock<IAuthorizationContext>();
+            var acmeOrderContext = new Mock<IOrderContext>();
+            var acmeContext = new Mock<IAcmeContext>();
+            var acmeAccountKey = new Mock<IKey>();
+            var certStore = new Mock<ICertStoreService>();
+            var httpProvider = new Mock<IHttpProvider>();
+            var certProducer = new Mock<ICertProducer>();
+            var dnsProvider = new Mock<IDnsProvider>();
+            var dnsService = new Mock<IDnsService>();
+            var authContext = Task.FromResult<IEnumerable<IAuthorizationContext>>([acmeAuthContext.Object]);
             var keyMakerConfig = GetKeyMakerConfiguration(challengeMode);
             var storeConfig = GetTestVolumeStoreConfiguration();
             var dnsConfig = GetTestDnsConfiguration();
@@ -75,32 +86,32 @@ public sealed class KeymakerApiTests
             EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructVolumeStoreConfiguration(storeConfig));
             EnvironmentConfiguration.WriteConfiguration(EnvironmentConfiguration.ConstructKeyMakerConfiguration(keyMakerConfig));
 
-            AcmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
-            AcmeContextFactory.Setup(s => s.GetAcmeContext()).Returns(AcmeContext.Object);
-            AcmeContext.Setup(s => s.NewOrder(It.IsAny<IList<string>>(), null, null)).ReturnsAsync(AcmeOrderContext.Object);
-            AcmeContext.Setup(s => s.AccountKey).Returns(AcmeAccountKey.Object);
-            AcmeOrderContext.Setup(s => s.Authorizations()).Returns(authContext);
-            AcmeChallengeContext.Setup(s => s.Validate()).ReturnsAsync(new Challenge { Type = "dns"});
-            AcmeChallengeContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
-            DnsProvider.Setup(s => s.GetDnsTxtValue(It.IsAny<IChallengeContext>(), It.IsAny<IAcmeContext>())).Returns("key");
-            DnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
-            DnsService.Setup(s => s.GetTxtEntryAsync()).ReturnsAsync("key");
-            CertProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateConfiguration>())).ReturnsAsync(cert);
-            CertStore.Setup(s => s.GetMostRecentCertificateInfoAsync()).ReturnsAsync(certInfo);
-            HttpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(AcmeChallengeContext.Object);
-            HttpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
+            acmeAuthContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
+            acmeContextFactory.Setup(s => s.GetAcmeContext()).Returns(acmeContext.Object);
+            acmeContext.Setup(s => s.NewOrder(It.IsAny<IList<string>>(), null, null)).ReturnsAsync(acmeOrderContext.Object);
+            acmeContext.Setup(s => s.AccountKey).Returns(acmeAccountKey.Object);
+            acmeOrderContext.Setup(s => s.Authorizations()).Returns(authContext);
+            acmeChallengeContext.Setup(s => s.Validate()).ReturnsAsync(new Challenge { Type = "dns"});
+            acmeChallengeContext.Setup(s => s.Location).Returns(new Uri("https://example.com"));
+            dnsProvider.Setup(s => s.GetDnsTxtValue(It.IsAny<IChallengeContext>(), It.IsAny<IAcmeContext>())).Returns("key");
+            dnsProvider.Setup(s => s.GetDnsChallengeAsync(It.IsAny<IAuthorizationContext>())).ReturnsAsync(acmeChallengeContext.Object);
+            dnsService.Setup(s => s.GetTxtEntryAsync()).ReturnsAsync("key");
+            certProducer.Setup(s => s.BuildCertificateAsync(It.IsAny<IOrderContext>(), It.IsAny<CertificateConfiguration>())).ReturnsAsync(cert);
+            certStore.Setup(s => s.GetMostRecentCertificateInfoAsync()).ReturnsAsync(certInfo);
+            httpProvider.Setup(s => s.GetHttpChallenge(It.IsAny<IAuthorizationContext>())).ReturnsAsync(acmeChallengeContext.Object);
+            httpProvider.Setup(s => s.GetHttpAuthz(It.IsAny<IChallengeContext>())).Returns("token.key");
 
             var application = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureServices(services =>
                     {
-                        services.AddSingleton(CertStore.Object);
-                        services.AddSingleton(CertProducer.Object);
-                        services.AddSingleton(DnsService.Object);
-                        services.AddSingleton(AcmeContextFactory.Object);
-                        services.AddSingleton(DnsProvider.Object);
-                        services.AddSingleton(HttpProvider.Object);
+                        services.AddSingleton(certStore.Object);
+                        services.AddSingleton(certProducer.Object);
+                        services.AddSingleton(dnsService.Object);
+                        services.AddSingleton(acmeContextFactory.Object);
+                        services.AddSingleton(dnsProvider.Object);
+                        services.AddSingleton(httpProvider.Object);
                         services.AddSingleton(dnsConfig);
                         services.AddSingleton(crtConfig);
                         services.AddSingleton(keyMakerConfig);
@@ -218,27 +229,5 @@ public sealed class KeymakerApiTests
                 Expiry = DateTime.MinValue
             };
         }
-
-        private Mock<IAcmeContextFactory> AcmeContextFactory { get; init; } = new();
-
-        private Mock<IChallengeContext> AcmeChallengeContext { get; init; } = new();
-
-        private Mock<IAuthorizationContext> AcmeAuthContext { get; init; } = new();
-
-        private Mock<IOrderContext> AcmeOrderContext { get; init; } = new();
-
-        private Mock<ICertStoreService> CertStore { get; init; } = new(); // TODO: try to use the volume store
-
-        private Mock<IHttpProvider> HttpProvider { get; init; } = new();
-
-        private Mock<ICertProducer> CertProducer { get; init; } = new();
-
-        private Mock<IAcmeContext> AcmeContext { get; init; } = new();
-
-        private Mock<IDnsProvider> DnsProvider { get; init; } = new();
-
-        private Mock<IDnsService> DnsService { get; init; } = new();
-
-        private Mock<IKey> AcmeAccountKey { get; init; } = new();
     }
 }
