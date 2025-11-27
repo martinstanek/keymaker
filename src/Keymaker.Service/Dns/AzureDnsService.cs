@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Azure;
@@ -19,6 +20,7 @@ public sealed class AzureDnsService : IDnsService
     private readonly IDnsLookupService _dnsLookupService;
     private readonly ILogger<AzureDnsService> _logger;
     private readonly Lazy<DnsTxtRecordCollection> _dnsRecords;
+    private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
 
     public AzureDnsService(
         AzureConfiguration azConfig,
@@ -47,7 +49,25 @@ public sealed class AzureDnsService : IDnsService
             }
         };
 
-        await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _azDnsConfig.SetDomain, newData);
+        await _semaphoreSlim.WaitAsync();
+
+        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_azDnsConfig.CheckDomain}");
+
+        try
+        {
+            await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _azDnsConfig.SetDomain, newData);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+
+            throw;
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+
     }
 
     public async Task<string> GetTxtEntryAsync()

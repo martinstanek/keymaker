@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ public sealed class CloudFlareDnsService : IDnsService
     private readonly ILogger<CloudFlareDnsService> _logger;
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+
     public CloudFlareDnsService(CloudFlareDnsServiceConfiguration configuration, IDnsLookupService lookupService, ILogger<CloudFlareDnsService> logger)
     {
         _dnsClient = new Lazy<CloudFlareDnsClient>(() => new CloudFlareDnsClient(
@@ -37,10 +39,15 @@ public sealed class CloudFlareDnsService : IDnsService
 
         _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_configuration.DnsChallengeSetDomain}");
 
-        // TODO: delete the previous records
-
         try
         {
+            var records = await _dnsClient.Value.Record.Get();
+
+            foreach (var record in records.Where(record => record.Name.Equals(_configuration.DnsChallengeSetDomain)))
+            {
+                await _dnsClient.Value.Record.Delete(record.Id);
+            }
+
             await _dnsClient.Value.Record.Create(
                 name: _configuration.DnsChallengeSetDomain,
                 content: value,
