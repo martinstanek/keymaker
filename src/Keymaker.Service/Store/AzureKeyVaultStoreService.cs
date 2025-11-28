@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
@@ -54,8 +55,7 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
         }
 
         var domain = c.HasValue ? c.Value.IssuerName ?? "neni" : "fuck";
-        var issuer = c.HasValue ? c.Value.Subject ?? "neni" : "fuck";
-
+        var issuer = c.HasValue ? c.Value.SubjectAlternativeNames.DnsNames.FirstOrDefault() ?? "neni" : "fuck";
 
         // cert.Value.Properties.Tags.TryGetValue(DomainTag, out var domain);
         // cert.Value.Properties.Tags.TryGetValue(IssuerTag, out var issuer);
