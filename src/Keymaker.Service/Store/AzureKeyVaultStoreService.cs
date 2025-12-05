@@ -47,13 +47,13 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
         var cert = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
-        var c = await _client.Value.GetCertificatePolicyAsync(_azKeyVaultStoreConfig.CertificateName);
 
         if (!cert.HasValue)
         {
             return CertificateInfo.Empty;
         }
 
+        var c = await _client.Value.GetCertificatePolicyAsync(_azKeyVaultStoreConfig.CertificateName);
         var domain = c.HasValue ? c.Value.IssuerName ?? "neni" : "fuck";
         var issuer = c.HasValue ? c.Value.SubjectAlternativeNames.DnsNames.FirstOrDefault() ?? "neni" : "fuck";
 
