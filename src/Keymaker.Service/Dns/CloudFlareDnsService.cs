@@ -41,20 +41,8 @@ public sealed class CloudFlareDnsService : IDnsService
 
         try
         {
-            var records = await _dnsClient.Value.Record.Get();
-
-            foreach (var record in records.Where(record => record.Name.Equals(_configuration.DnsChallengeSetDomain)))
-            {
-                await _dnsClient.Value.Record.Delete(record.Id);
-            }
-
-            await _dnsClient.Value.Record.Create(
-                name: _configuration.DnsChallengeSetDomain,
-                content: value,
-                proxied: false,
-                RecordType.TXT,
-                ttl: RecordTimeToLiveSeconds,
-                RecordComment);
+            await DeleteTxtEntriesAsync();
+            await SetTxtEntryAsync(value);
         }
         catch (Exception e)
         {
@@ -71,5 +59,26 @@ public sealed class CloudFlareDnsService : IDnsService
     public async Task<string> GetTxtEntryAsync()
     {
         return await _lookupService.GetTxtEntryAsync(_configuration.DnsChallengeCheckDomain);
+    }
+
+    private async Task SetTxtEntryAsync(string value)
+    {
+        await _dnsClient.Value.Record.Create(
+            name: _configuration.DnsChallengeSetDomain,
+            content: value,
+            proxied: false,
+            RecordType.TXT,
+            ttl: RecordTimeToLiveSeconds,
+            RecordComment);
+    }
+
+    private async Task DeleteTxtEntriesAsync()
+    {
+        var records = await _dnsClient.Value.Record.Get();
+
+        foreach (var record in records.Where(record => record.Name.Equals(_configuration.DnsChallengeCheckDomain)))
+        {
+            await _dnsClient.Value.Record.Delete(record.Id);
+        }
     }
 }
