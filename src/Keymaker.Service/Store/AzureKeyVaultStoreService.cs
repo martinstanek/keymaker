@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
@@ -46,9 +47,18 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
 
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
-        var cert = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
+        var cert = default(Response<KeyVaultCertificateWithPolicy>?);
 
-        if (!cert.HasValue)
+        try
+        {
+            cert = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
+
+            if (!cert.HasValue)
+            {
+                return CertificateInfo.Empty;
+            }
+        }
+        catch
         {
             return CertificateInfo.Empty;
         }
@@ -63,7 +73,7 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
         return new CertificateInfo
         {
             Domain = domain ?? string.Empty,
-            Issuer = issuer ?? string.Empty ,
+            Issuer = issuer ?? string.Empty,
             Expiry = cert.Value.Properties.ExpiresOn?.DateTime ?? DateTime.MinValue,
             Obtained = cert.Value.Properties.CreatedOn?.DateTime ?? DateTime.MinValue
         };
