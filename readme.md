@@ -9,11 +9,11 @@
 
 ![ui](https://github.com/martinstanek/keymaker/blob/develop/misc/ui.png?raw=true)
 
-The Let's Encrypt client as a Docker image.\
+The Let's Encrypt client is a Docker image.\
 Supports HTTP & DNS challenges.\
 Supports CloudFlare & Azure DNS Zones.\
 Supports local volume & Azure KeyVault as a target for the certificate persistence.\
-Supports extended automation via the webhook
+Supports extended automation via the webhook.
 
 ### Server
 
@@ -114,7 +114,7 @@ Since quite sensitive info has to be provided to the container,\
 those values can be passed in as docker secrets.
 
 The simplified compose file with the full list of env variable variants\
-supporting the docker secret file.
+supporting the docker secrets:
 
 ```yml
 
