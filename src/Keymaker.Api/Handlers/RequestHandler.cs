@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Keymaker.Api.Logging.Store;
+using Keymaker.Api.Mapping;
 using Microsoft.AspNetCore.Http;
 using Keymaker.Service;
 
@@ -21,7 +22,7 @@ public sealed class RequestHandler
     {
         var info = await _keymakerService.GetChallengeInfoAsync();
 
-        return Results.Ok(info);
+        return Results.Ok(info.ToPublic());
     }
 
     public IResult TriggerChallengeAsync()

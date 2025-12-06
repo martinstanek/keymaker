@@ -5,8 +5,6 @@ using Keymaker.Service.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO: https://www.youtube.com/watch?v=x0725PDUho8
-
 builder.AddLogging();
 builder.Services.AddCors();
 builder.Services.AddKeymaker();

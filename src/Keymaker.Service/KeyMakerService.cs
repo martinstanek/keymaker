@@ -3,7 +3,6 @@ using System.Threading;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Keymaker.Model;
 using Keymaker.Service.Acme;
 using Keymaker.Service.Configuration.Certificate;
 using Keymaker.Service.Configuration.Service;
@@ -12,6 +11,7 @@ using Keymaker.Service.Extensions;
 using Keymaker.Service.Integrations;
 using Keymaker.Service.Model;
 using Keymaker.Service.Store;
+using ChallengeInfo = Keymaker.Service.Model.ChallengeInfo;
 
 namespace Keymaker.Service;
 

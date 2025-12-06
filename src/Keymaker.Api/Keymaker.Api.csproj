@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Keymaker.Model\Keymaker.Model.csproj" />
       <ProjectReference Include="..\Keymaker.Service\Keymaker.Service.csproj" />
     </ItemGroup>
 
