@@ -12,7 +12,7 @@
 The Let's Encrypt client as a Docker image.\
 Supports HTTP & DNS challenges.\
 Supports CloudFlare & Azure DNS Zones.\
-Supports local volume & Azure KeyVault as a target.\
+Supports local volume & Azure KeyVault as a target for the certificate persistence.\
 Supports extended automation via the webhook
 
 ### Server
@@ -108,6 +108,50 @@ services:
       - ./certificates:/certificates
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+```
+
+Since quite sensitive info has to be provided to the container,\
+those values can be passed in as docker secrets.
+
+The simplified compose file with the full list of env variable variants\
+supporting the docker secret file.
+
+```yml
+
+services:
+
+  keymaker.awitec.net:
+    hostname: keymaker.awitec.net
+    container_name: keymaker.awitec.net
+    image: awitec/keymaker:1.0.0-amd64
+    environment:
+      - KEYMAKER_CFDNSAPIEMAIL_FILE=/run/secrets/cf_email
+      - KEYMAKER_CFDNSAPIKEY_FILE=/run/secrets/cf_key
+      - KEYMAKER_CFDNSAPIZONE_FILE=/run/secrets/cf_zone
+      - KEYMAKER_AZSECRET_FILE=/run/secrets/az_secret
+      - KEYMAKER_CONTACT_FILE=/run/secrets/cert_contact
+      - KEYMAKER_PASSWORD_FILE=/run/secrets/cert_pass
+    secrets:
+      - cert_pass
+      - cert_contact
+      - cf_key
+      - cf_email
+      - cf_zone
+      - az_secret
+    
+secrets:
+  cert_pass:
+    file: ./secrets/cert_pass.txt
+  cert_contact:
+    file: ./secrets/cert_contact.txt
+  cf_key:
+    file: ./secrets/cf_apikey.txt
+  cf_email:
+    file: ./secrets/cf_email.txt
+  cf_zone:
+    file: ./secrets/cf_zone.txt
+  az_secret:
+    file: ./secrets/az_secret.txt
 ```
 
 ![teaser](https://github.com/martinstanek/keymaker/blob/develop/misc/teaser.jpg?raw=true)
