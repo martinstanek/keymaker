@@ -1,21 +1,15 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Keymaker.Service.Configuration.Azure;
 using Keymaker.Service.Model;
-using Org.BouncyCastle.Utilities.Encoders; // TODO: ??
 
 namespace Keymaker.Service.Store;
 
 public sealed class AzureKeyVaultStoreService : ICertStoreService
 {
-    private const string DomainTag = "domain"; // TODO: not a better way?
-    private const string IssuerTag = "Issuer";
-
     private readonly AzureKeyVaultStoreConfiguration _azKeyVaultStoreConfig;
     private readonly ILogger<AzureKeyVaultStoreService> _logger;
     private readonly Lazy<CertificateClient> _client;
@@ -32,54 +26,54 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
 
     public async Task PersistCertificatesAsync(CertificatePersistenceInfo persistenceInfo)
     {
-        var certBytes = Base64.Decode(persistenceInfo.Base64Pfx);
-        var importOptions = new ImportCertificateOptions(_azKeyVaultStoreConfig.CertificateName, certBytes)
+        try
         {
-            Password = persistenceInfo.Password,
-            Enabled = true,
-            Tags = { {DomainTag, persistenceInfo.Domain}, {IssuerTag, persistenceInfo.Issuer} }
-        };
+            var certBytes = Convert.FromBase64String(persistenceInfo.Base64Pfx);
+            var importOptions = new ImportCertificateOptions(_azKeyVaultStoreConfig.CertificateName, certBytes)
+            {
+                Password = persistenceInfo.Password,
+                Enabled = true
+            };
 
-        await _client.Value.ImportCertificateAsync(importOptions);
-
-        _logger.LogDebug($"Certificate imported: {_azKeyVaultStoreConfig.CertificateName}");
+            await _client.Value.ImportCertificateAsync(importOptions);
+            
+            _logger.LogDebug($"Certificate imported: {_azKeyVaultStoreConfig.CertificateName}");
+        }
+        catch
+        {
+            _logger.LogError("Failed to persist the certificate.");
+        }
     }
 
     public async Task<CertificateInfo> GetMostRecentCertificateInfoAsync()
     {
-        var cert = default(Response<KeyVaultCertificateWithPolicy>?);
-
         try
         {
-            cert = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
-
-            if (!cert.HasValue)
+            var x509Response = await _client.Value.DownloadCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
+            var certResponse = await _client.Value.GetCertificateAsync(_azKeyVaultStoreConfig.CertificateName);
+            
+            if (!x509Response.HasValue || !certResponse.HasValue)
             {
                 return CertificateInfo.Empty;
             }
+            
+            var x509Cert = x509Response.Value;
+            
+            return new CertificateInfo
+            {
+                Domain = x509Cert.Subject.Replace("CN=", string.Empty),
+                Issuer = x509Cert.IssuerName.Name,
+                Expiry = certResponse.Value.Properties.ExpiresOn?.DateTime ?? DateTime.MinValue,
+                Obtained = certResponse.Value.Properties.CreatedOn?.DateTime ?? DateTime.MinValue
+            };
         }
         catch
         {
+            _logger.LogError("Failed to obtain the certificate, check the name and permissions.");
+            
             return CertificateInfo.Empty;
         }
-
-        var c = await _client.Value.GetCertificatePolicyAsync(_azKeyVaultStoreConfig.CertificateName);
-        var domain = c.HasValue ? c.Value.IssuerName ?? "neni" : "fuck";
-        var issuer = c.HasValue ? c.Value.SubjectAlternativeNames.DnsNames.FirstOrDefault() ?? "neni" : "fuck";
-
-        // cert.Value.Properties.Tags.TryGetValue(DomainTag, out var domain);
-        // cert.Value.Properties.Tags.TryGetValue(IssuerTag, out var issuer);
-
-        return new CertificateInfo
-        {
-            Domain = domain ?? string.Empty,
-            Issuer = issuer ?? string.Empty,
-            Expiry = cert.Value.Properties.ExpiresOn?.DateTime ?? DateTime.MinValue,
-            Obtained = cert.Value.Properties.CreatedOn?.DateTime ?? DateTime.MinValue
-        };
     }
-
-    public string StoreName => _azKeyVaultStoreConfig.CertificateName;
 
     private static CertificateClient GetCertificateClient(AzureConfiguration azConfiguration, AzureKeyVaultStoreConfiguration azKeyVaultStoreConfiguration)
     {
@@ -96,4 +90,6 @@ public sealed class AzureKeyVaultStoreService : ICertStoreService
 
         return client;
     }
+    
+    public string StoreName => _azKeyVaultStoreConfig.CertificateName;
 }
