@@ -9,26 +9,25 @@ using Keymaker.Service.Configuration.CloudFlare;
 
 namespace Keymaker.Service.Dns;
 
-public sealed class CloudFlareDnsService : IDnsService
+public sealed class CloudFlareDnsService : DnsService, IDnsService
 {
-    private const int RecordTimeToLiveSeconds = 300;
     private const string RecordComment = "Added by the Keymaker.";
-
-    private readonly CloudFlareDnsServiceConfiguration _configuration;
-    private readonly IDnsLookupService _lookupService;
-    private readonly ILogger<CloudFlareDnsService> _logger;
+    private const int RecordTimeToLiveSeconds = 300;
+    
     private readonly Lazy<CloudFlareDnsClient> _dnsClient;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly ILogger<CloudFlareDnsService> _logger;
 
-    public CloudFlareDnsService(CloudFlareDnsServiceConfiguration configuration, IDnsLookupService lookupService, ILogger<CloudFlareDnsService> logger)
+    public CloudFlareDnsService(
+        CloudFlareDnsServiceConfiguration configuration, 
+        IDnsLookupService dnsLookupService, 
+        ILogger<CloudFlareDnsService> logger) : base(configuration.Domain, dnsLookupService)
     {
+        _logger = logger;
         _dnsClient = new Lazy<CloudFlareDnsClient>(() => new CloudFlareDnsClient(
             xAuthKey: configuration.Key,
             xAuthEmail: configuration.Email,
             zoneIdentifier: configuration.Zone));
-        _configuration = configuration;
-        _lookupService = lookupService;
-        _logger = logger;
     }
 
     public async Task AddTxtEntryAsync(string value)
@@ -37,7 +36,7 @@ public sealed class CloudFlareDnsService : IDnsService
 
         await _semaphore.WaitAsync();
 
-        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_configuration.DnsChallengeSetDomain}");
+        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {CheckDomain}");
 
         try
         {
@@ -58,13 +57,13 @@ public sealed class CloudFlareDnsService : IDnsService
 
     public async Task<string> GetTxtEntryAsync()
     {
-        return await _lookupService.GetTxtEntryAsync(_configuration.DnsChallengeCheckDomain);
+        return await DnsLookupService.GetTxtEntryAsync(CheckDomain);
     }
 
     private async Task SetTxtEntryAsync(string value)
     {
         await _dnsClient.Value.Record.Create(
-            name: _configuration.DnsChallengeSetDomain,
+            name: SetDomain,
             content: value,
             proxied: false,
             RecordType.TXT,
@@ -76,7 +75,7 @@ public sealed class CloudFlareDnsService : IDnsService
     {
         var records = await _dnsClient.Value.Record.Get();
 
-        foreach (var record in records.Where(record => record.Name.Equals(_configuration.DnsChallengeCheckDomain)))
+        foreach (var record in records.Where(record => record.Name.Equals(CheckDomain)))
         {
             await _dnsClient.Value.Record.Delete(record.Id);
         }

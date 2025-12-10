@@ -5,6 +5,8 @@ using Keymaker.Service.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// TODO: tests for subomain & wildcard combinations
+
 builder.AddLogging();
 builder.Services.AddCors();
 builder.Services.AddKeymaker();

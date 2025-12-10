@@ -10,6 +10,13 @@ public sealed record AzureConfiguration
     public required Guid ClientId { get; init; }
 
     public required string Secret { get; init; }
+
+    public static AzureConfiguration Empty => new()
+    {
+        ClientId = Guid.Empty,
+        TenantId = Guid.Empty,
+        Secret = string.Empty
+    };
 }
 
 internal sealed class AzureConfigurationValidator : AbstractValidator<AzureConfiguration>

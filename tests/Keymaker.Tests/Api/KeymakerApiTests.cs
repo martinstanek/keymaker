@@ -158,8 +158,7 @@ public sealed class KeymakerApiTests
         {
             return new CloudFlareDnsServiceConfiguration
             {
-                DnsChallengeCheckDomain = "dns.challenge.check.domain.com",
-                DnsChallengeSetDomain = "dns.challenge.set.domain.com",
+                Domain = "example.com",
                 Email = "test@example.com",
                 Key = "dns.challenge.key",
                 Zone = "dns.zone"

@@ -11,28 +11,26 @@ using Keymaker.Service.Configuration.Azure;
 
 namespace Keymaker.Service.Dns;
 
-public sealed class AzureDnsService : IDnsService
+public sealed class AzureDnsService : DnsService, IDnsService
 {
     private const int TtlSeconds = 300;
 
-    private readonly AzureConfiguration _azConfig;
     private readonly AzureDnsServiceConfiguration _azDnsConfig;
-    private readonly IDnsLookupService _dnsLookupService;
-    private readonly ILogger<AzureDnsService> _logger;
+    private readonly AzureConfiguration _azConfig;
     private readonly Lazy<DnsTxtRecordCollection> _dnsRecords;
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
+    private readonly ILogger<AzureDnsService> _logger;
 
     public AzureDnsService(
         AzureConfiguration azConfig,
         AzureDnsServiceConfiguration azDnsConfig,
         IDnsLookupService dnsLookupService,
-        ILogger<AzureDnsService> logger)
+        ILogger<AzureDnsService> logger) : base(azDnsConfig.Domain, dnsLookupService)
     {
         _azConfig = azConfig;
         _azDnsConfig = azDnsConfig;
-        _dnsLookupService = dnsLookupService;
         _logger = logger;
-        _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords());
+        _dnsRecords = new Lazy<DnsTxtRecordCollection>(ResolveDnsRecords);
     }
 
     public async Task AddTxtEntryAsync(string value)
@@ -44,18 +42,17 @@ public sealed class AzureDnsService : IDnsService
             TtlInSeconds = TtlSeconds,
             DnsTxtRecords =
             {
-
                 new DnsTxtRecordInfo { Values = { value } }
             }
         };
 
         await _semaphoreSlim.WaitAsync();
 
-        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {_azDnsConfig.CheckDomain}");
+        _logger.LogDebug($"Setting a TXT record with {value} for the domain: {CheckDomain}");
 
         try
         {
-            await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, _azDnsConfig.SetDomain, newData);
+            await _dnsRecords.Value.CreateOrUpdateAsync(WaitUntil.Started, SetDomain, newData);
         }
         catch (Exception e)
         {
@@ -67,12 +64,11 @@ public sealed class AzureDnsService : IDnsService
         {
             _semaphoreSlim.Release();
         }
-
     }
 
     public async Task<string> GetTxtEntryAsync()
     {
-        return await _dnsLookupService.GetTxtEntryAsync(_azDnsConfig.CheckDomain);
+        return await DnsLookupService.GetTxtEntryAsync(CheckDomain);
     }
 
     private DnsTxtRecordCollection ResolveDnsRecords()

@@ -51,8 +51,7 @@ public static class EnvironmentConfiguration
             Email = Env.ReadString("KEYMAKER_CFDNSAPIEMAIL", secretFile: "KEYMAKER_CFDNSAPIEMAIL_FILE"),
             Key = Env.ReadString("KEYMAKER_CFDNSAPIKEY", secretFile: "KEYMAKER_CFDNSAPIKEY_FILE"),
             Zone = Env.ReadString("KEYMAKER_CFDNSAPIZONE", secretFile: "KEYMAKER_CFDNSAPIZONE_FILE"),
-            DnsChallengeCheckDomain = Env.ReadString("KEYMAKER_CFDNSCHECKDOMAIN"),
-            DnsChallengeSetDomain = Env.ReadString("KEYMAKER_CFDNSSETDOMAIN")
+            Domain = Env.ReadString("KEYMAKER_CFDNSDOMAIN")
         };
     }
 
@@ -63,8 +62,7 @@ public static class EnvironmentConfiguration
             { "KEYMAKER_CFDNSAPIEMAIL", configuration.Email },
             { "KEYMAKER_CFDNSAPIKEY", configuration.Key },
             { "KEYMAKER_CFDNSAPIZONE", configuration.Zone },
-            { "KEYMAKER_CFDNSCHECKDOMAIN", configuration.DnsChallengeCheckDomain },
-            { "KEYMAKER_CFDNSSETDOMAIN", configuration.DnsChallengeCheckDomain }
+            { "KEYMAKER_CFDNSDOMAIN", configuration.Domain }
         };
     }
 
@@ -83,8 +81,7 @@ public static class EnvironmentConfiguration
         return new AzureDnsServiceConfiguration
         {
             DnsZoneResourceId = Env.ReadString("KEYMAKER_AZDNSRESOURCEID"),
-            CheckDomain = Env.ReadString("KEYMAKER_AZDNSCHECKDOMAIN"),
-            SetDomain = Env.ReadString("KEYMAKER_AZDNSSETDOMAIN")
+            Domain = Env.ReadString("KEYMAKER_AZDNSDOMAIN")
         };
     }
 
