@@ -35,7 +35,7 @@ public sealed class AzureDnsService : DnsService, IDnsService
 
     public async Task AddTxtEntryAsync(string value)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);   
 
         var newData = new DnsTxtRecordData
         {
