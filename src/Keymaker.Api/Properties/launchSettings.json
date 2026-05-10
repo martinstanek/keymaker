@@ -4,7 +4,36 @@
     "Keymaker.Api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5001"
+      "applicationUrl": "http://localhost:5001",
+      "environmentVariables": {
+        "KEYMAKER_DNSMODE": "CloudFlare",
+        "KEYMAKER_STORAGEMODE": "Volume",
+        "KEYMAKER_CHALLENGEMODE": "Dns",
+        "KEYMAKER_AUTORENEW": "false",
+        "KEYMAKER_RENEWEVERYHOURS": "240",
+        "KEYMAKER_CHECKEVERYMINUTES": "15",
+        "KEYMAKER_FOLDER": "/certificates",
+        "KEYMAKER_WEBHOOK": "false",
+        "KEYMAKER_WEBHOOKURL": "http://localhost/webhook/newCertificate",
+        "KEYMAKER_ENABLEUI": "true",
+        "KEYMAKER_ENABLEAPI": "true",
+        "KEYMAKER_ENABLECONSOLE": "true",
+        "KEYMAKER_ENABLEOPENAPI": "true",
+        "KEYMAKER_ENABLECHALLENGETRIGGER": "true",
+        "KEYMAKER_CFDNSAPIEMAIL": "email@example.com",
+        "KEYMAKER_CFDNSAPIKEY": "123",
+        "KEYMAKER_CFDNSAPIZONE": "123",
+        "KEYMAKER_CFDNSDOMAIN": "lan.awitec.net",
+        "KEYMAKER_CONTACT": "email@example.com",
+        "KEYMAKER_DOMAIN": "*.lan.awitec.net",
+        "KEYMAKER_CERTNAME": "lan.awitec.net",
+        "KEYMAKER_PASSWORD": "secret",
+        "KEYMAKER_COUNTRY": "Switzerland",
+        "KEYMAKER_STATE": "Zürich",
+        "KEYMAKER_LOCALITY": "Stäfa",
+        "KEYMAKER_ORG": "Awitec",
+        "KEYMAKER_UNIT": "HQ"
+      }
     }
   }
 }

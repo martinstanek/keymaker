@@ -6,6 +6,8 @@ using Keymaker.Service.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // TODO: tests for subomain & wildcard combinations
+// TODO: check the local vs utc for evaluation
+// TODO: time stamp to label
 
 builder.AddLogging();
 builder.Services.AddCors();
